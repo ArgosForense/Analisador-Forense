@@ -1,1 +1,23 @@
+# Arquivos de configuração e documentação
 README.md
+
+# Arquivos Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.env
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Arquivos temporários
+*.tmp
+*.bak
+
+# Pastas de IDE
+.vscode/
+.idea/
