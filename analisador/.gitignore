@@ -1,0 +1,11 @@
+# Ignorar a pasta do ambiente virtual
+venv/
+.venv/
+
+# Ignorar arquivos temporários e de cache
+__pycache__/
+.DS_Store
+*.pyc
+
+# Ignorar o diretório de dados do Docker
+/elastic_data/
