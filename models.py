@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base
-from sqlalchemy_utils import ChoiceType
 
 # Criação da conexão com o banco de dados
 db = create_engine("sqlite:///banco_test.db")
@@ -23,14 +22,12 @@ class Usuario(Base):
     nome = Column("nome", String)
     email = Column("email", String, nullable=False)
     senha = Column("senha", String)
-    tipo_usuario = Column("tipo_usuario") # quais são????????????
     ativo = Column("ativo", Boolean)
     
-    def __init__(self, nome, email, senha, tipo_usuario="USER", ativo=True):
+    def __init__(self, nome, email, senha, ativo=True):
         self.nome = nome
         self.email = email
         self.senha = senha
-        self.tipo_usuario = tipo_usuario
         self.ativo = ativo
 # 
 
