@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from models import Gestor
 from dependencies import pegar_sessao
+from main import bcrypt_context
 
 
 
@@ -17,7 +18,8 @@ async def criar_conta(email: str, senha: str, nome: str, empresa_id: int, sessio
         #já existe um gestor com esse email nessa mesma empresa
         return {"mensagem": "Já existe um gestor com esse email!"}
     else:
-        novo_gestor = Gestor(nome=nome, email=email, senha=senha, empresa_id=empresa_id)
+        senha_criptografada = bcrypt_context.hash(senha)
+        novo_gestor = Gestor(nome, email, senha_criptografada, empresa_id)
         session.add(novo_gestor)
         session.commit()
         return {"mensagem": "Conta do Gestor criada com sucesso!"} ## retorna cod: 200
