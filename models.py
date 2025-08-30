@@ -26,7 +26,7 @@ class Empresa(Base):
         self.cnpj = cnpj
         self.gestores = gestores
         
-class gestor(Base):
+class Gestor(Base):
     __tablename__ = "gestores"
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
