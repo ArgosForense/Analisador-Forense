@@ -17,6 +17,10 @@ async def home():
 
 @auth_router.post("/criar_conta")
 async def criar_conta(gestor_schema: GestorSchema, session: Session = Depends(pegar_sessao)):
+    """Resumo: Essa é a rota para criação de conta para gestores vinculados a uma empresa já existente no sistema.
+    
+    OBS.: Foi criada a restrição de apenas gestores, pois as contas de usuários serão criados pelos gestores.
+    """
     gestor = session.query(Gestor).filter((Gestor.email == gestor_schema.email) & (Gestor.empresa_id == gestor_schema.empresa_id)).first()
     if gestor:
         
