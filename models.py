@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, ForeignKey, Table
+from sqlalchemy.orm import declarative_base, relationship
 
 # Criação da conexão com o banco de dados
 db = create_engine("sqlite:///banco_test.db")
@@ -19,12 +19,10 @@ class Empresa(Base):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     nome = Column("nome", String, nullable=False)
     cnpj = Column("cnpj", String, nullable=False)
-    gestores = Column("gestores", String) # lista de gestores vinculados a empresa
     
-    def __init__(self, nome, cnpj, gestores):
+    def __init__(self, nome, cnpj):
         self.nome = nome
         self.cnpj = cnpj
-        self.gestores = gestores
         
 class Gestor(Base):
     __tablename__ = "gestores"
@@ -62,13 +60,25 @@ class Usuario(Base):
         self.gestor_id = gestor_id
         self.status = status
         
-        
+class Permissao(Base):
+    __tablename__ = "permissoes"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nome = Column(String, nullable=False)
+
+#Uso do objeto Table para criar essa associação, pois ele é mais leve e direto para esse propósito. Só criamos uma classe se a tabela de associação tiver campos adicionais (como data de criação, status, etc).    
+perfil_permissao = Table(
+    "perfil_permissao",
+    Base.metadata,
+    Column("perfil_id", Integer, ForeignKey("perfis.id")),
+    Column("permissao_id", Integer, ForeignKey("permissoes.id"))
+)
+
 class Perfil(Base):
     __tablename__ = "perfis"
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     nome = Column("nome", String, nullable=False)
-    permissoes = Column("permissoes", String) # lista de permissões vinculadas ao perfil
+    permissoes = relationship("Permissao", secondary=perfil_permissao, backref="perfis")
     
     def __init__(self, nome, permissoes):
         self.nome = nome

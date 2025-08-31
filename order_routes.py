@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from models import Usuario, Perfil
+from models import Usuario, Perfil, Permissao
 from dependencies import pegar_sessao
 from schemas import UsuarioSchema, PerfilSchema
 from sqlalchemy.orm import Session
@@ -29,7 +29,13 @@ async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(p
     
     - **Perfil**: Cada perfil define um conjunto de permissões que podem ser atribuídas ao usuário. O usuário pode ter apenas um perfil, mas um perfil pode ser atribuído a vários usuários.
     """
-    novo_perfil = Perfil(perfil_schema.nome, ",".join(perfil_schema.permissoes)) # Converte a lista de permissões em uma string separada por vírgulas
+    novo_perfil = Perfil(perfil_schema.nome, []) # Cria o perfil sem permissões inicialmente
     session.add(novo_perfil)
+    session.commit()
+     # Adiciona as permissões ao perfil
+    for permissao_schema in perfil_schema.permissoes:
+        permissao = session.query(Permissao).filter_by(nome=permissao_schema.nome).first()
+        if permissao:
+            novo_perfil.permissoes.append(permissao)
     session.commit()
     return {"mensagem": f"Perfil criado com sucesso. Perfil: {perfil_schema.nome}"}

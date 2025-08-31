@@ -2,6 +2,13 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+class EmpresaSchema(BaseModel):
+    nome: str
+    cnpj: str
+
+    class Config:
+        from_attributes = True
+
 class GestorSchema(BaseModel):
     nome: str
     email: str
@@ -22,9 +29,16 @@ class UsuarioSchema(BaseModel):
     class Config:
         from_attributes = True
         
+class PermissaoSchema(BaseModel):
+    nome: str
+
+    class Config:
+        from_attributes = True
+
 class PerfilSchema(BaseModel):
     nome: str
-    permissoes: str #List[str] = [] lista de permissões atribuídas ao perfil
+    permissoes:List[PermissaoSchema] = [] #lista de permissões atribuídas ao perfil 
+    # ou permissoes_ids: List[int] = [] lista de IDs das permissões atribuídas ao perfil
 
     class Config:
         from_attributes = True
