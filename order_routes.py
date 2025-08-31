@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from models import Usuario, Perfil, Permissao
 from dependencies import pegar_sessao
+from main import bcrypt_context
 from schemas import UsuarioSchema, PerfilSchema
 from sqlalchemy.orm import Session
 
@@ -18,7 +19,8 @@ async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depend
     
     - **usuario_schema**: Dados do usuário a ser criado, conforme o esquema definido em UsuarioSchema.
     """
-    novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, usuario_schema.senha,  usuario_schema.perfil_id, usuario_schema.gestor_id)
+    senha_criptografada = bcrypt_context.hash(usuario_schema.senha)
+    novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada,  usuario_schema.perfil_id, usuario_schema.gestor_id)
     session.add(novo_usuario)
     session.commit()
     return {"mensagem": f"Usuário criado com sucesso. Usuario: {usuario_schema.email}"}
