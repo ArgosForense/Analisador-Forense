@@ -1,4 +1,4 @@
-#OBJETIVO: Velocidade e Integridade do sistema - faz a conexão com o models.py
+#OBJETIVO: Velocidade e Integridade do sistema, classe que permite padronizar a forma como irá receber as informações - faz a conexão com o models.py
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -22,9 +22,16 @@ class GestorSchema(BaseModel):
 class UsuarioSchema(BaseModel):
     nome: str
     email: str
-    senha: str
+    senha: str # ALTERAR, O GESTOR NÃO DEVE SABER A SENHA DO USUÁRIO, ELA DEVE SER GERADA AUTOMATICAMENTE E ENVIADA POR EMAIL !!!! temporário
     perfil_id: int
-    gestor_id: int ; #Talvez não seja necessário, pois o usuário será criado pelo gestor, que já está vinculado a uma empresa específica
+    gestor_id: int ;
+
+    class Config:
+        from_attributes = True
+
+class LoginSchema(BaseModel):
+    email: str
+    senha: str
 
     class Config:
         from_attributes = True
@@ -38,7 +45,7 @@ class PermissaoSchema(BaseModel):
 class PerfilSchema(BaseModel):
     nome: str
     permissoes:List[PermissaoSchema] = [] #lista de permissões atribuídas ao perfil 
-    # ou permissoes_ids: List[int] = [] lista de IDs das permissões atribuídas ao perfil
+    
 
     class Config:
         from_attributes = True
