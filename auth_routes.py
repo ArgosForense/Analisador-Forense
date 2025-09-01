@@ -13,6 +13,22 @@ def criar_token(id):
     token = f"fds1sd2e34{id}" # simulações de token
     return token
 
+def autenticar_gestor(email, senha, session):
+    gestor = session.query(Gestor).filter(Gestor.email == email).first()
+    if not gestor:
+        return False
+    elif not bcrypt_context.verify(senha, gestor.senha):
+        return False
+    return gestor
+
+def autenticar_usuario(email, senha, session):
+    usuario = session.query(Usuario).filter(Usuario.email == email).first()
+    if not usuario:
+        return False
+    elif not bcrypt_context.verify(senha, usuario.senha):
+        return False
+    return usuario
+
 @auth_router.get("/")
 async def home():
     """
@@ -41,8 +57,8 @@ async def criar_conta(gestor_schema: GestorSchema, session: Session = Depends(pe
 async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sessao)):
     """Resumo: Rota para login de Gestores ou Usuários no sistema. 
     """
-    gestor = session.query(Gestor).filter(Gestor.email == login_schema.email).first()
-    usuario = session.query(Usuario).filter(Usuario.email == login_schema.email).first()
+    gestor = autenticar_gestor(login_schema.email, login_schema.senha, session)
+    usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
     # if not gestor: #and not usuario: 
     #     raise HTTPException(status_code=400, detail="Email não encontrado.")
     # else:
@@ -51,22 +67,22 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
     #         "acess_token": access_token,
     #         "token_type": "bearer"
     #     }
-    if gestor:
+    if not usuario and not gestor:
+        raise HTTPException(status_code=400, detail="Conta não encontrada ou credenciais incorretas.")
+    elif gestor:
         access_token = criar_token(gestor.id)
         return {
             "access_token": access_token,
             "token_type": "bearer",
             "tipo": "gestor"
         }
-    elif usuario:
+    else:
         access_token = criar_token(usuario.id)
         return {
             "access_token": access_token,
             "token_type": "bearer",
             "tipo": "usuario"
         }
-    else:
-        raise HTTPException(status_code=400, detail="Email não encontrado.")
         
 
 @auth_router.post("/cadastrar_empresa")
