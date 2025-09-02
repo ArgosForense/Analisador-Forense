@@ -1,0 +1,12 @@
+[{
+  "_id": {
+    "$oid": "68b66501f85f1b9248a90dfe"
+  },
+  "tipo_evento": "acesso_ao_sistema",
+  "timestamp": "2025-09-02T12:00:00Z",
+  "detalhes": {
+    "ip_address": "192.168.1.1",
+    "sessao_id": "ab123cde456"
+  },
+  "usuario_id": "cole_aqui_o_id_do_gestor"
+}]
