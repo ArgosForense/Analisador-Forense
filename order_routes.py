@@ -37,10 +37,17 @@ async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depend
     }
     
 @order_router.post("/usuario/desativar/{usuario_id}")
-async def desativar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao)):
+async def desativar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao), usuario_autenticado: Usuario = Depends(verificar_token)):
+    """_summary_: Rota para desativação de um usuário.
+    - Gestores podem desativar a conta de um usuário.
+    - Próprio usuário pode desativar sua conta.
+    - Usuário desativado não pode mais fazer login no sistema.
+    """
     usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    if not usuario_autenticado.id == usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para desativar este usuário")
     usuario.status = "DESATIVADO"
     session.commit()
     return {"mensagem": f"Usuário número: {usuario.id} desativado com sucesso.",
