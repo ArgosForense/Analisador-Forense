@@ -1,0 +1,10 @@
+[{
+  "_id": {
+    "$oid": "68b66028f85f1b9248a90dd8"
+  },
+  "nome": "Nathalia Silva",
+  "email": "nathalia.silva@argos.com",
+  "senha": "987654321",
+  "empresa_id": "68b65f18f85f1b9248a90dc4",
+  "perfil_id": "68b636d8f85f1b9248a90d14"
+}]
