@@ -1,0 +1,40 @@
+[{
+  "_id": {
+    "$oid": "68b63baaf85f1b9248a90d3b"
+  },
+  "perfil_id": "68b636d8f85f1b9248a90d14",
+  "permissao_id": "68b63760f85f1b9248a90d17",
+  "comentario": "Esta linha liga o perfil Gestor à permissao de gerenciar usuarios."
+},
+{
+  "_id": {
+    "$oid": "68b645ddf85f1b9248a90d7a"
+  },
+  "perfil_id": "68b636d8f85f1b9248a90d14",
+  "permissao_id": "68b63765f85f1b9248a90d19",
+  "comentario": "Liga o perfil Gestor a permissao de gerar relatorios."
+},
+{
+  "_id": {
+    "$oid": "68b6460ff85f1b9248a90d80"
+  },
+  "perfil_id": "68b636d8f85f1b9248a90d14",
+  "permissao_id": "68b6376af85f1b9248a90d1b",
+  "comentario": "Liga o perfil Gestor a permissao de ver logs completos."
+},
+{
+  "_id": {
+    "$oid": "68b64b2bf85f1b9248a90d87"
+  },
+  "perfil_id": "68b63631f85f1b9248a90d07",
+  "permissao_id": "68b6376af85f1b9248a90d1b",
+  "comentario": "Liga o perfil Analista a permissao de ver logs completos."
+},
+{
+  "_id": {
+    "$oid": "68b64b3cf85f1b9248a90d89"
+  },
+  "perfil_id": "68b63631f85f1b9248a90d07",
+  "permissao_id": "68b63765f85f1b9248a90d19",
+  "comentario": "Liga o perfil Analista a permissao de gerar relatorios."
+}]
