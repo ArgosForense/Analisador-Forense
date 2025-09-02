@@ -7,56 +7,19 @@
 
 # Argos - Forensic Analyzer
 
-## Project Overview
-This project is a forensic analysis system developed as a university assignment.  
-Its main goal is to **collect and analyze machine activity logs** from a company to ensure network security.
+This project is a forensic analysis system that collects and manages machine activity logs to improve network security.  
+It uses **MongoDB** for scalable log storage and an **ER Model** to define entities like Users, Profiles, and Permissions.  
 
----
+## Main Collections (ArgosDB)
+- **EMPRESA** – Company data  
+- **GESTOR** – Manager data  
+- **USUARIOS** – Users (analysts/employees)  
+- **PERFIL** – Access profiles  
+- **PERMISSAO** – Permissions list  
+- **PERFIL_PERMISSAO** – Links profiles ↔ permissions  
+- **LOG** – Activity logs  
 
-## Technologies Used
-- **MongoDB**: NoSQL database used to store logs in a flexible and scalable way.  
-  MongoDB is ideal for this project as it efficiently handles the varied nature of log data.
+Scripts for database setup are in `scripts/` and can be executed with **mongosh**.  
 
-- **Entity-Relationship Model (ERM)**:  
-  The ER diagram was designed to logically structure the database, ensuring that all entities and their relationships (such as *Users, Profiles,* and *Permissions*) were well-defined before implementation.
+An agent collects logs from machines and sends them to MongoDB (cloud), while managers use a control panel to analyze and manage data.
 
----
-
-## Database Structure
-The database, named **ArgosDB**, is composed of 7 main collections:
-
-1. **EMPRESA** – Stores company information.  
-2. **GESTOR** – Contains data about the manager responsible for the system.  
-3. **USUARIOS** – Stores information about users (analysts and employees).  
-4. **PERFIL** – Defines types of access profiles.  
-5. **PERMISSAO** – Contains the system’s permission list.  
-6. **PERFIL_PERMISSAO** – Associative collection that links profiles and permissions.  
-7. **LOG** – Main collection for storing activity logs.  
-
----
-
-## Setup & Creation Scripts
-The database creation scripts are available inside the **`scripts/`** folder.  
-To run them:
-
-1. Connect to your MongoDB instance using **mongosh**.  
-2. Execute the scripts to create the database and collections.  
-
----
-
-## How It Works
-The system is divided into two main parts:
-
-1. **Data Collection**:  
-   An agent (script) is installed on company machines, which sends activity logs to the cloud-hosted MongoDB database.
-
-2. **Analysis & Management**:  
-   The manager accesses a control panel (system backend) to view, analyze, and manage logs, using the permissions and structure defined in the ERM.
-
----
-
-## Summary
-This project demonstrates the use of **forensic data analysis with MongoDB**.  
-It highlights both the technical implementation (database structure and scripts) and the security management approach (log analysis and access control).  
-
-This README serves as a professional summary of the project and the technologies used.
