@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario, Perfil, Permissao
-from dependencies import pegar_sessao
+from dependencies import pegar_sessao, verificar_token
 from main import bcrypt_context
 from schemas import UsuarioSchema, PerfilSchema
 from sqlalchemy.orm import Session
-import secrets, string, smtplib, email.message
-from email.mime.text import MIMEText
+import secrets, string
 
-order_router = APIRouter(prefix="/usuarios", tags=["usuarios"])
+order_router = APIRouter(prefix="/usuarios", tags=["usuarios"], dependencies=[Depends(verificar_token)])
 
 @order_router.get("/")
 async def usuarios():
@@ -36,6 +35,16 @@ async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depend
         "email_institucional": email_institucional,
         "senha": senha_aleatoria  # Apenas para fins de desenvolvimento, remover em produção
     }
+    
+@order_router.post("/usuario/desativar/{usuario_id}")
+async def desativar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao)):
+    usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    usuario.status = "DESATIVADO"
+    session.commit()
+    return {"mensagem": f"Usuário número: {usuario.id} desativado com sucesso.",
+            "usuario": usuario}
 
 def gerar_senha_aleatoria(tamanho=10):
     caracteres = string.ascii_letters + string.digits

@@ -47,8 +47,8 @@ class Usuario(Base):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     nome = Column("nome", String)
     email = Column("email", String, nullable=False)
-    senha = Column("senha", String) # !!!! temporário
-    status = Column("status", String) # ATIVO ou INATIVO
+    senha = Column("senha", String)
+    status = Column("status", String) # ATIVO ou DESATIVADO
     perfil_id = Column("perfil_id", Integer, ForeignKey("perfis.id")) # 1 usuário possui 1 perfil, mas 1 perfil pode ser vinculado a vários usuários
     gestor_id = Column("gestor_id", Integer, ForeignKey("gestores.id")) # 1 gestor pode criar vários usuários, mas 1 usuário é criado por apenas 1 gestor
     
