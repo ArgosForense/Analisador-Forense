@@ -22,7 +22,7 @@ class GestorSchema(BaseModel):
 class UsuarioSchema(BaseModel):
     nome: str
     email: str
-    senha: str # ALTERAR, O GESTOR NÃO DEVE SABER A SENHA DO USUÁRIO, ELA DEVE SER GERADA AUTOMATICAMENTE E ENVIADA POR EMAIL !!!! temporário
+    #senha: str # ALTERAR, O GESTOR NÃO DEVE SABER A SENHA DO USUÁRIO, ELA DEVE SER GERADA AUTOMATICAMENTE E ENVIADA POR EMAIL !!!! temporário
     perfil_id: int
     gestor_id: int ; # o gestor que está criando o usuário, não faz sentido o gestor ter que informar seu id para criar o usuário !!!! temporário
 

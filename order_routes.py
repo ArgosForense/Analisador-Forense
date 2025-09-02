@@ -4,6 +4,8 @@ from dependencies import pegar_sessao
 from main import bcrypt_context
 from schemas import UsuarioSchema, PerfilSchema
 from sqlalchemy.orm import Session
+import secrets, string, smtplib, email.message
+from email.mime.text import MIMEText
 
 order_router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 
@@ -17,13 +19,37 @@ async def usuarios():
 async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao)):
     """_summary_: Rota para criação de um novo usuário. Apenas gestores autenticados podem criar usuários.
     
-    - **usuario_schema**: Dados do usuário a ser criado, conforme o esquema definido em UsuarioSchema.
+    O gestor informa dados do usuário: nome, email pessoal e perfil de acesso. O sistema gera email institucional e senha automaticamente, e envia as credenciais para o email pessoal do usuário.
     """
-    senha_criptografada = bcrypt_context.hash(usuario_schema.senha)
-    novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada,  usuario_schema.perfil_id, usuario_schema.gestor_id)
+    senha_aleatoria = gerar_senha_aleatoria()
+    senha_criptografada = bcrypt_context.hash(senha_aleatoria)
+    email_institucional = gerar_email_institucional(usuario_schema.nome)
+    
+    novo_usuario = Usuario(usuario_schema.nome, email_institucional, senha_criptografada,  usuario_schema.perfil_id, usuario_schema.gestor_id)
     session.add(novo_usuario)
     session.commit()
-    return {"mensagem": f"Usuário criado com sucesso. Usuario: {usuario_schema.email}"}
+
+    # Envia o email para o email pessoal do usuário com as credenciais#
+    enviar_email(usuario_schema.email, email_institucional, senha_aleatoria)
+    return {
+        "mensagem": f"Usuário criado com sucesso. Credenciais enviadas para {usuario_schema.email}",
+        "email_institucional": email_institucional,
+        "senha": senha_aleatoria  # Apenas para fins de desenvolvimento, remover em produção
+    }
+
+def gerar_senha_aleatoria(tamanho=10):
+    caracteres = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(caracteres) for _ in range(tamanho))
+
+def gerar_email_institucional(nome, dominio="empresa.com"):
+    nome_formatado = nome.lower().replace(" ", ".")
+    return f"{nome_formatado}@{dominio}"
+
+def enviar_email(destinatario, email_institucional, senha):
+    corpo = f"Seu acesso foi criado!\nEmail institucional: {email_institucional}\nSenha: {senha}"
+    print(f"[DEV] Simulando envio de email para {destinatario}:\n{corpo}")
+    # Em ambiente de produção será necessário vincular a uma API, como do office365 ou Microsoft Graph!
+    
 
 @order_router.post("/perfil")
 async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(pegar_sessao)):
