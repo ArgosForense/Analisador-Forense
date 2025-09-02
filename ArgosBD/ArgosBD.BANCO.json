@@ -1,0 +1,12 @@
+// Script para criar o banco de dados e suas coleções
+// Conecta ao banco de dados ArgosDB
+use('ArgosDB');
+
+// Cria as coleções com base no MER
+db.createCollection('EMPRESA');
+db.createCollection('GESTOR');
+db.createCollection('USUARIOS');
+db.createCollection('PERFIL');
+db.createCollection('PERMISSAO');
+db.createCollection('PERFIL_PERMISSAO');
+db.createCollection('LOG');
