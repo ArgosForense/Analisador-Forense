@@ -1,17 +1,49 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Gestor, Empresa, Usuario
-from dependencies import pegar_sessao
-from main import bcrypt_context
+from dependencies import pegar_sessao, verificar_token
+from main import bcrypt_context, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from schemas import GestorSchema, EmpresaSchema, LoginSchema
 from sqlalchemy.orm import Session
-
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
 
 auth_router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
-def criar_token(id):
-    token = f"fds1sd2e34{id}" # simulações de token
-    return token
+def criar_token(id, tipo,duracao_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)):
+    data_expiracao = datetime.now(tz=timezone.utc) + duracao_token
+    dicionario_informacoes = {
+        "sub": str(id),
+        "exp": data_expiracao,
+        "tipo": tipo  # Gestor ou Usuario
+    }
+    jwt_codificado = jwt.encode(dicionario_informacoes, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt_codificado
+
+
+
+    
+# Pega as informações do token
+@auth_router.get("/refresh_token")
+async def use_refresh_token(obj_autenticado = Depends(verificar_token)):
+    """Resumo: Rota para renovar o token de acesso (access_token) usando o token de atualização (refresh_token).
+    """
+    if isinstance(obj_autenticado, Gestor):
+        access_token = criar_token(obj_autenticado.id, "gestor")
+        tipo = "gestor"
+    elif isinstance(obj_autenticado, Usuario):
+        access_token = criar_token(obj_autenticado.id, "usuario")
+        tipo = "usuario"
+    else:
+        raise HTTPException(status_code=401, detail="Token inválido ou usuário não autenticado.")
+    #access_token = criar_token(gestor.id)
+    #access_token = criar_token(usuario.id)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "tipo": tipo
+    }
+    
 
 def autenticar_gestor(email, senha, session):
     gestor = session.query(Gestor).filter(Gestor.email == email).first()
@@ -59,27 +91,24 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
     """
     gestor = autenticar_gestor(login_schema.email, login_schema.senha, session)
     usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
-    # if not gestor: #and not usuario: 
-    #     raise HTTPException(status_code=400, detail="Email não encontrado.")
-    # else:
-    #     access_token = criar_token(gestor.id)
-    #     return{
-    #         "acess_token": access_token,
-    #         "token_type": "bearer"
-    #     }
+    
     if not usuario and not gestor:
         raise HTTPException(status_code=400, detail="Conta não encontrada ou credenciais incorretas.")
     elif gestor:
-        access_token = criar_token(gestor.id)
+        access_token = criar_token(gestor.id, "gestor")
+        refresh_token = criar_token(gestor.id, "gestor", duracao_token=timedelta(days=7)) # Token de atualização com duração maior (7 dias)
         return {
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "tipo": "gestor"
         }
     else:
-        access_token = criar_token(usuario.id)
+        access_token = criar_token(usuario.id,"usuario")
+        refresh_token = criar_token(usuario.id, "usuario", duracao_token=timedelta(days=7))
         return {
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "tipo": "usuario"
         }
