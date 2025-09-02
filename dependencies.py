@@ -19,7 +19,14 @@ def pegar_sessao():
         
 # Para ter acesso a uma rota deve estar obrigatoriamente autenticado - Sera usado como Bloqueio de Endpoints 
 def verificar_token(token: str = Depends(oath2_schema), session: Session = Depends(pegar_sessao)):
-    """_summary_
+    """
+    Valida o token JWT recebido na requisição, garantindo que o usuário está autenticado.
+
+    - Decodifica o token JWT usando a chave secreta e o algoritmo definidos.
+    - Extrai o ID e o tipo (gestor ou usuário) do token.
+    - Busca a entidade correspondente no banco de dados.
+    - Retorna o objeto autenticado (Gestor ou Usuario) para uso nas rotas protegidas.
+    - Lança exceção HTTP 401 em caso de token inválido, expirado ou gestor/usuário não encontrado.
     """
     
     try:
