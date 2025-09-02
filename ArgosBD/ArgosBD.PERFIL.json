@@ -1,0 +1,27 @@
+[{
+  "_id": {
+    "$oid": "68b63631f85f1b9248a90d07"
+  },
+  "nome_perfil": "Analista",
+  "permissoes": [
+    "ver_logs_completos",
+    "gerar_relatorios"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68b636d8f85f1b9248a90d14"
+  },
+  "nome_perfil": "Gestor",
+  "permissoes": [
+    "gerenciar_usuarios",
+    "gerar_relatorios",
+    "ver_logs_completos"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68b65db7f85f1b9248a90dc0"
+  },
+  "nome_perfil": "Funcionario"
+}]
