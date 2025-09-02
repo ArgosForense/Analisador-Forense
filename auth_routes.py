@@ -6,6 +6,7 @@ from schemas import GestorSchema, EmpresaSchema, LoginSchema
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
+from fastapi.security import OAuth2PasswordRequestForm
 
 auth_router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
@@ -113,6 +114,31 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
             "tipo": "usuario"
         }
         
+@auth_router.post("/login-form")
+async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(pegar_sessao)):
+    """Resumo: Rota exclusiva para testes de autorização via OAuth2 na documentação automática do FastAPI. 
+    - Ao invés de fazer requisições manuais, pode-se usar a documentação automática do FastAPI. 
+    - Uso do formulário da documentação automática do FastAPI para passar os dados (username e password)
+    """
+    gestor = autenticar_gestor(dados_formulario.username, dados_formulario.password, session)
+    usuario = autenticar_usuario(dados_formulario.username, dados_formulario.password, session)
+    
+    if not usuario and not gestor:
+        raise HTTPException(status_code=400, detail="Conta não encontrada ou credenciais incorretas.")
+    elif gestor:
+        access_token = criar_token(gestor.id, "gestor")
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "tipo": "gestor"
+        }
+    else:
+        access_token = criar_token(usuario.id,"usuario")
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "tipo": "usuario"
+        }                
 
 @auth_router.post("/cadastrar_empresa")
 async def cadastrar_empresa(empresa_schema: EmpresaSchema, session: Session = Depends(pegar_sessao)):

@@ -13,7 +13,7 @@ ACESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACESS_TOKEN_EXPIRE_MINUTES"))
 app = FastAPI()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oath2_schema = OAuth2PasswordBearer(tokenUrl="auth/login") # !!!! eh necessario para passar o token como um header ao inves do body na requisição !!!! temporário
+oath2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-form") # !!!! eh necessario para passar o token como um header ao inves do body na requisição !!!! temporário
 
 # Roteadores
 from auth_routes import auth_router

@@ -27,6 +27,7 @@ def verificar_token(token: str = Depends(oath2_schema), session: Session = Depen
     - Busca a entidade correspondente no banco de dados.
     - Retorna o objeto autenticado (Gestor ou Usuario) para uso nas rotas protegidas.
     - Lança exceção HTTP 401 em caso de token inválido, expirado ou gestor/usuário não encontrado.
+    *Conclusão:* Pode ser usado para bloquear rotas de usuário/gesto não autenticados.
     """
     
     try:
@@ -38,15 +39,6 @@ def verificar_token(token: str = Depends(oath2_schema), session: Session = Depen
         #Erro na decodificação do token
         raise HTTPException(status_code=401, detail="Acesso Negado: Token inválido ou expirado")
     
-    # Extrai o ID do gestor ou usuario do token
-    # gestor = session.query(Gestor).filter(Gestor.id == id).first()
-    # usuario = session.query(Usuario).filter(Usuario.id == id).first()
-    # if not usuario and not gestor:
-    #     raise HTTPException(status_code=401, detail="Acesso Inválido: Gestor ou Usuário não encontrado")
-    # elif gestor:
-    #     return gestor
-    # else:
-    #     return usuario
     if tipo == "gestor":
         gestor = session.query(Gestor).filter(Gestor.id == id).first()
         if not gestor:
