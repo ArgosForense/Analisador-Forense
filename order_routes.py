@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models import Usuario, Perfil, Permissao
+from models import Usuario, Perfil, Permissao, Gestor
 from dependencies import pegar_sessao, verificar_token
 from main import bcrypt_context
 from schemas import UsuarioSchema, PerfilSchema
@@ -46,11 +46,26 @@ async def desativar_usuario(usuario_id: int, session: Session = Depends(pegar_se
     usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    if not usuario_autenticado.id == usuario.id:
+    if not (isinstance(usuario_autenticado, Gestor) or usuario_autenticado.id == usuario.id):
         raise HTTPException(status_code=403, detail="Você não tem permissão para desativar este usuário")
     usuario.status = "DESATIVADO"
     session.commit()
     return {"mensagem": f"Usuário número: {usuario.id} desativado com sucesso.",
+            "usuario": usuario}
+
+@order_router.post("/usuario/ativar/{usuario_id}")
+async def ativar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao), usuario_autenticado: Usuario = Depends(verificar_token)):
+    """_summary_: Rota para ativação de um usuário.
+    - Somente gestores podem ativar a conta de um usuário.
+    """
+    usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    # if not usuario_autenticado.id == usuario.id:
+    #     raise HTTPException(status_code=403, detail="Você não tem permissão para ativar este usuário")
+    usuario.status = "ATIVO"
+    session.commit()
+    return {"mensagem": f"Usuário número: {usuario.id} Ativado com sucesso.",
             "usuario": usuario}
 
 def gerar_senha_aleatoria(tamanho=10):
@@ -68,11 +83,14 @@ def enviar_email(destinatario, email_institucional, senha):
     
 
 @order_router.post("/perfil")
-async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(pegar_sessao)):
+async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(pegar_sessao), usuario_autenticado: Gestor = Depends(verificar_token)):
     """_summary_: Rota para criação de um novo perfil. Apenas gestores autenticados podem criar perfis.
     
     - **Perfil**: Cada perfil define um conjunto de permissões que podem ser atribuídas ao usuário. O usuário pode ter apenas um perfil, mas um perfil pode ser atribuído a vários usuários.
     """
+    if not isinstance(usuario_autenticado, Gestor):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para criar perfis")
+    
     novo_perfil = Perfil(perfil_schema.nome, []) # Cria o perfil sem permissões inicialmente
     session.add(novo_perfil)
     session.commit()

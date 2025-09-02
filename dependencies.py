@@ -46,8 +46,8 @@ def verificar_token(token: str = Depends(oath2_schema), session: Session = Depen
         return gestor
     elif tipo == "usuario":
         usuario = session.query(Usuario).filter(Usuario.id == id).first()
-        if not usuario:
-            raise HTTPException(status_code=401, detail="Acesso Inválido: Usuário não encontrado")
+        if not usuario or usuario.status != "ATIVO":
+            raise HTTPException(status_code=401, detail="Acesso Inválido: Usuário não encontrado ou desativado")
         return usuario
     else:
         raise HTTPException(status_code=401, detail="Tipo de usuário inválido no token")
