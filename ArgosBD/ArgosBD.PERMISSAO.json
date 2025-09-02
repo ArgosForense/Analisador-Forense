@@ -1,0 +1,18 @@
+[{
+  "_id": {
+    "$oid": "68b63760f85f1b9248a90d17"
+  },
+  "nome_permissao": "gerenciar_usuarios"
+},
+{
+  "_id": {
+    "$oid": "68b63765f85f1b9248a90d19"
+  },
+  "nome_permissao": "gerar_relatorios"
+},
+{
+  "_id": {
+    "$oid": "68b6376af85f1b9248a90d1b"
+  },
+  "nome_permissao": "ver_logs_completos"
+}]
