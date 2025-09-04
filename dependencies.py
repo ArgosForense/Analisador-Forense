@@ -52,3 +52,11 @@ def verificar_token(token: str = Depends(oath2_schema), session: Session = Depen
     else:
         raise HTTPException(status_code=401, detail="Tipo de usuário inválido no token")
     
+def nivel_acesso_gestor(pessoa_autenticada = Depends(verificar_token), session: Session = Depends(pegar_sessao)):
+    """
+    Dependência que garante que apenas gestores autenticados podem acessar a rota.
+    """
+    if not isinstance(pessoa_autenticada, Gestor):
+        raise HTTPException(status_code=403, detail="Permissão negada. Apenas gestores podem acessar esta rota")
+    return pessoa_autenticada
+    
