@@ -37,6 +37,7 @@ class LoginSchema(BaseModel):
         from_attributes = True
         
 class PermissaoSchema(BaseModel):
+    id: int
     nome: str
 
     class Config:
@@ -44,7 +45,7 @@ class PermissaoSchema(BaseModel):
 
 class PerfilSchema(BaseModel):
     nome: str
-    permissoes:List[PermissaoSchema] = [] #lista de permissões atribuídas ao perfil 
+    permissoes_ids:List[int] = [] #lista de permissões atribuídas ao perfil ## verificar formatação [{"nome":""}]  !!!! temporário, ajustar
     
 
     class Config:

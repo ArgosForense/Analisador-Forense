@@ -82,21 +82,42 @@ def enviar_email(destinatario, email_institucional, senha):
 @order_router.post("/perfil")
 async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(pegar_sessao), pessoa_autenticada = Depends(verificar_token)):
     """_summary_: Rota para criação de um novo perfil. Apenas gestores autenticados podem criar perfis.
+    - O usuário pode ter apenas um perfil, mas um perfil pode ser atribuído a vários usuários.
     
-    - **Perfil**: Cada perfil define um conjunto de permissões que podem ser atribuídas ao usuário. O usuário pode ter apenas um perfil, mas um perfil pode ser atribuído a vários usuários.
+    - **Perfil**: Cada perfil define um conjunto de permissões que podem ser atribuídas ao usuário. 
+    Ao criar, informe o nome do perfil e uma lista com os IDs das permissões a serem associadas.
     """
     # Se o objeto autenticado não for uma instancia da classe gestor, então bloqueie a ação
     
-    novo_perfil = Perfil(perfil_schema.nome, []) # Cria o perfil sem permissões inicialmente
+    # novo_perfil = Perfil(perfil_schema.nome, []) # Cria o perfil sem permissões inicialmente
+    # session.add(novo_perfil)
+    # session.commit()
+    #  # Adiciona as permissões ao perfil
+    # for permissao_schema in perfil_schema.permissoes:
+    #     permissao = session.query(Permissao).filter_by(nome=permissao_schema.nome).first()
+    #     if permissao:
+    #         novo_perfil.permissoes.append(permissao)
+    # session.commit()
+    # return {"mensagem": f"Perfil criado com sucesso. Perfil: {perfil_schema.nome}"}
+    
+    
+    # 1. Busca os objetos de Permissao com base nos IDs recebidos
+    permissoes_encontradas = session.query(Permissao).filter(Permissao.id.in_(perfil_schema.permissoes_ids)).all()
+    
+    # Opcional, mas recomendado: verificar se todos os IDs fornecidos correspondem a permissões existentes
+    if len(permissoes_encontradas) != len(perfil_schema.permissoes_ids):
+        raise HTTPException(status_code=400, detail="Uma ou mais permissões não foram encontradas.")
+        
+    # 2. Cria o novo perfil associando os objetos de permissão encontrados
+    novo_perfil = Perfil(
+        nome=perfil_schema.nome,
+        permissoes=permissoes_encontradas  # Associa a lista de objetos Permissao
+    )
+    
     session.add(novo_perfil)
     session.commit()
-     # Adiciona as permissões ao perfil
-    for permissao_schema in perfil_schema.permissoes:
-        permissao = session.query(Permissao).filter_by(nome=permissao_schema.nome).first()
-        if permissao:
-            novo_perfil.permissoes.append(permissao)
-    session.commit()
-    return {"mensagem": f"Perfil criado com sucesso. Perfil: {perfil_schema.nome}"}
+    
+    return {"mensagem": f"Perfil '{perfil_schema.nome}' criado com sucesso."}
 
 permissoes_router = APIRouter(prefix="/permissoes", tags=["permissoes"], dependencies=[Depends(verificar_token), Depends(nivel_acesso_gestor)],)
 
@@ -118,4 +139,4 @@ async def criar_permissao(
     nova_permissao = Permissao(nome=nome)
     session.add(nova_permissao)
     session.commit()
-    return {"mensagem": f"Permissão '{nome}' criada com sucesso.", "permissao_id": nova_permissao.id}
+    return {"mensagem": f"Permissão: '{nome}' criada com sucesso.", "permissao_id": nova_permissao.id}
