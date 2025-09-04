@@ -20,6 +20,10 @@ async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depend
     
     O gestor informa dados do usuário: nome, email pessoal e perfil de acesso. O sistema gera email institucional e senha automaticamente, e envia as credenciais para o email pessoal do usuário.
     """
+    
+    if not isinstance(usuario_schema, Gestor):
+        raise HTTPException(status_code=403, detail="Apenas gestores podem criar usuários")
+    
     senha_aleatoria = gerar_senha_aleatoria()
     senha_criptografada = bcrypt_context.hash(senha_aleatoria)
     email_institucional = gerar_email_institucional(usuario_schema.nome)
