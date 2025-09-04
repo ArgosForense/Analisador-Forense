@@ -17,9 +17,10 @@ oath2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-form") # !!!! eh necess
 
 # Roteadores
 from auth_routes import auth_router
-from order_routes import order_router
+from order_routes import order_router, permissoes_router
 
 app.include_router(auth_router)
 app.include_router(order_router)
+app.include_router(permissoes_router)
 
 # para rodar o código, executar no terminal: uvicorn main:app --reload

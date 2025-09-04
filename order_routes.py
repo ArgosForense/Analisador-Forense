@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario, Perfil, Permissao, Gestor
-from dependencies import pegar_sessao, verificar_token
+from dependencies import pegar_sessao, verificar_token, nivel_acesso_gestor
 from main import bcrypt_context
 from schemas import UsuarioSchema, PerfilSchema
 from sqlalchemy.orm import Session
 import secrets, string
 
-order_router = APIRouter(prefix="/usuarios", tags=["usuarios"], dependencies=[Depends(verificar_token)])
+order_router = APIRouter(prefix="/usuarios", tags=["usuarios"], dependencies=[Depends(verificar_token), Depends(nivel_acesso_gestor)],) 
 
 @order_router.get("/")
 async def usuarios():
@@ -21,8 +21,6 @@ async def criar_usuario(usuario_schema: UsuarioSchema, session: Session = Depend
     O gestor informa dados do usuário: nome, email pessoal e perfil de acesso. O sistema gera email institucional e senha automaticamente, e envia as credenciais para o email pessoal do usuário.
     """
     
-    if not isinstance(usuario_schema, Gestor):
-        raise HTTPException(status_code=403, detail="Apenas gestores podem criar usuários")
     
     senha_aleatoria = gerar_senha_aleatoria()
     senha_criptografada = bcrypt_context.hash(senha_aleatoria)
@@ -49,8 +47,6 @@ async def desativar_usuario(usuario_id: int, session: Session = Depends(pegar_se
     usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    if not isinstance(pessoa_autenticada, Gestor):
-        raise HTTPException(status_code=403, detail="Apenas gestores podem desativar usuários")
     usuario.status = "DESATIVADO"
     session.commit()
     return {"mensagem": f"Usuário número: {usuario.id} desativado com sucesso.",
@@ -64,8 +60,6 @@ async def ativar_usuario(usuario_id: int, session: Session = Depends(pegar_sessa
     usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    if not isinstance(pessoa_autenticada, Gestor):
-        raise HTTPException(status_code=403, detail="Apenas gestores podem ativar usuários")
     usuario.status = "ATIVO"
     session.commit()
     return {"mensagem": f"Usuário número: {usuario.id} Ativado com sucesso.",
@@ -92,8 +86,6 @@ async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(p
     - **Perfil**: Cada perfil define um conjunto de permissões que podem ser atribuídas ao usuário. O usuário pode ter apenas um perfil, mas um perfil pode ser atribuído a vários usuários.
     """
     # Se o objeto autenticado não for uma instancia da classe gestor, então bloqueie a ação
-    if not isinstance(pessoa_autenticada, Gestor):
-        raise HTTPException(status_code=403, detail="Você não tem permissão para criar perfis")
     
     novo_perfil = Perfil(perfil_schema.nome, []) # Cria o perfil sem permissões inicialmente
     session.add(novo_perfil)
@@ -105,3 +97,25 @@ async def criar_perfil(perfil_schema: PerfilSchema, session: Session = Depends(p
             novo_perfil.permissoes.append(permissao)
     session.commit()
     return {"mensagem": f"Perfil criado com sucesso. Perfil: {perfil_schema.nome}"}
+
+permissoes_router = APIRouter(prefix="/permissoes", tags=["permissoes"], dependencies=[Depends(verificar_token), Depends(nivel_acesso_gestor)],)
+
+@permissoes_router.post("/permissao")
+async def criar_permissao(
+    nome: str,
+    session: Session = Depends(pegar_sessao)
+):
+    """
+    Rota para criação de uma nova permissão. 
+    - Apenas gestores autenticados podem criar permissões.
+    """
+    
+    # Verifica se já existe uma permissão com esse nome
+    permissao_existente = session.query(Permissao).filter_by(nome=nome).first()
+    if permissao_existente:
+        raise HTTPException(status_code=400, detail="Permissão já existe")
+    
+    nova_permissao = Permissao(nome=nome)
+    session.add(nova_permissao)
+    session.commit()
+    return {"mensagem": f"Permissão '{nome}' criada com sucesso.", "permissao_id": nova_permissao.id}
