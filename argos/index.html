@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Logs - Teste</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #0056b3; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        #searchInput { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        #searchButton { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        #searchButton:hover { background-color: #0056b3; }
+        #status { font-style: italic; color: #666; margin-bottom: 20px; }
+        #results { background-color: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 15px; min-height: 200px; white-space: pre-wrap; word-wrap: break-word; font-family: "Courier New", Courier, monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Buscador de Logs</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Digite um termo para buscar (ex: ERROR)">
+            <button id="searchButton">Buscar Logs</button>
+        </div>
+        <div id="status"></div>
+        <pre id="results">Os resultados da busca aparecerão aqui...</pre>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
+
+        async function searchLogs() {
+            const searchTerm = searchInput.value;
+            
+            statusDiv.textContent = 'Buscando...';
+            resultsDiv.textContent = '';
+
+            try {
+                const response = await fetch(`http://localhost:5000/search?q=${encodeURIComponent(searchTerm)}`);
+
+                if (!response.ok) {
+                    throw new Error(`Erro na rede: ${response.statusText}`);
+                }
+
+                const logs = await response.json();
+                
+                if (logs.length > 0) {
+                    statusDiv.textContent = `Encontrados ${logs.length} resultados.`;
+                    resultsDiv.textContent = JSON.stringify(logs, null, 2);
+                } else {
+                    statusDiv.textContent = 'Nenhum resultado encontrado.';
+                    resultsDiv.textContent = 'Tente um termo diferente ou deixe em branco para ver os logs mais recentes.';
+                }
+
+            } catch (error) {
+                console.error('Falha ao buscar logs:', error);
+                statusDiv.textContent = 'Erro ao conectar com o backend.';
+                resultsDiv.textContent = `Verifique se os contêineres Docker estão rodando e se não há erros no console do navegador (F12).\n\nDetalhes: ${error.message}`;
+            }
+        }
+        
+        searchButton.addEventListener('click', searchLogs);
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchLogs();
+            }
+        });
+
+    </script>
+</body>
+</html>
