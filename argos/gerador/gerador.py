@@ -36,7 +36,6 @@ def gerar_timestamp_aleatorio():
     return now.replace(hour=hora, minute=minuto, second=segundo, microsecond=0)
 
 def escrever_log_no_arquivo(f, log_entry):
-    # <--- 2. USAR json.dumps() PARA GARANTIR O FORMATO CORRETO
     f.write(json.dumps(log_entry) + '\n')
 
 def gerar_log_normal(f):
