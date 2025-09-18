@@ -34,8 +34,9 @@ function FormularioPerfil({ perfisExistentes, permissoesDisponiveis, onSave }) {
 
     onSave({ nome, permissoes: permissoesSelecionadas });
     setSucesso(`Perfil '${nome}' criado com sucesso!`);
-    setNome('');
-    setPermissoesSelecionadas([]);
+    setNome('')@tailwind base;
+@tailwind components;
+@tailwind utilities;    setPermissoesSelecionadas([]);
     // Em um cenário real, você resetaria os checkboxes.
     // Para simplificar, estamos apenas limpando o estado.
   };
