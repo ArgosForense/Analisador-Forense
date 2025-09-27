@@ -9,4 +9,4 @@ COPY gerador.py .
 
 RUN touch /var/log/gerador.log
 
-CMD ["python", "-u", "gerador.py"]
+CMD ["python", "-u", "gerador.py", "--tcp-port", "5140", "--udp-port", "5140"]

@@ -27,6 +27,10 @@ services:
       - elastic_network
     volumes:
       - logs_volume:/var/log/
+    ports:
+      - "5140:5140/tcp"
+      - "5140:5140/udp"
+    command: ["python", "-u", "gerador.py", "--tcp-port", "5140", "--udp-port", "5140"]
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.9.0

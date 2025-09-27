@@ -3,6 +3,9 @@ import datetime
 import random
 import pytz
 import json
+import argparse
+import socket
+import threading
 
 LOG_FILE_PATH = "/var/log/gerador.log"
 TIMEZONE = pytz.timezone('America/Sao_Paulo')
@@ -24,6 +27,24 @@ IPS_SUSPEITOS = {
     "tentativas_falhas": "201.45.112.88",
     "localidade_incomum": "103.77.200.15"
 }
+
+def listen_tcp(port):
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('0.0.0.0', port))
+    server.listen(5)
+    print(f"TCP: Escutando na porta {port}")
+    while True:
+        client_socket, addr = server.accept()
+        print(f"TCP: Conexão aceita de {addr}")
+        client_socket.close()
+
+def listen_udp(port):
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.bind(('0.0.0.0', port))
+    print(f"UDP: Escutando na porta {port}")
+    while True:
+        data, addr = server.recvfrom(1024)
+        print(f"UDP: Recebido {data} de {addr}")
 
 def gerar_timestamp_aleatorio():
     now = datetime.datetime.now(TIMEZONE)
@@ -105,17 +126,31 @@ def gerar_log_fora_de_horario(f):
     escrever_log_no_arquivo(f, log_entry)
     print(f"ALERTA: Gerado acesso fora de hora para {funcionario['user']}.")
 
-print("--- Gerador de Logs de Acesso iniciado. Escrevendo em:", LOG_FILE_PATH)
-with open(LOG_FILE_PATH, "a") as f:
-    while True:
-        escolha = random.random()
-        if escolha < 0.85:
-            gerar_log_normal(f)
-        elif escolha < 0.92:
-            gerar_log_falha_multipla(f)
-        elif escolha < 0.97:
-            gerar_log_acesso_ip_incomum(f)
-        else:
-            gerar_log_fora_de_horario(f)
-        f.flush()
-        time.sleep(random.uniform(0.5, 3))
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Gerador de Logs de Acesso com listeners de porta.")
+    parser.add_argument("--tcp-port", type=int, help="Porta TCP para escutar.")
+    parser.add_argument("--udp-port", type=int, help="Porta UDP para escutar.")
+    args = parser.parse_args()
+
+    if args.tcp_port:
+        tcp_thread = threading.Thread(target=listen_tcp, args=(args.tcp_port,), daemon=True)
+        tcp_thread.start()
+
+    if args.udp_port:
+        udp_thread = threading.Thread(target=listen_udp, args=(args.udp_port,), daemon=True)
+        udp_thread.start()
+
+    print("--- Gerador de Logs de Acesso iniciado. Escrevendo em:", LOG_FILE_PATH)
+    with open(LOG_FILE_PATH, "a") as f:
+        while True:
+            escolha = random.random()
+            if escolha < 0.85:
+                gerar_log_normal(f)
+            elif escolha < 0.92:
+                gerar_log_falha_multipla(f)
+            elif escolha < 0.97:
+                gerar_log_acesso_ip_incomum(f)
+            else:
+                gerar_log_fora_de_horario(f)
+            f.flush()
+            time.sleep(random.uniform(0.5, 3))
