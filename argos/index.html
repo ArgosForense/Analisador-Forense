@@ -3,74 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador de Logs - Teste</title>
+    <title>Argos - Painel de Monitoramento</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; color: #333; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #0056b3; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        #searchInput { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        #searchButton { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        #searchButton:hover { background-color: #0056b3; }
-        #status { font-style: italic; color: #666; margin-bottom: 20px; }
-        #results { background-color: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 15px; min-height: 200px; white-space: pre-wrap; word-wrap: break-word; font-family: "Courier New", Courier, monospace; }
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-bg-color: #ffffff;
+            --header-color: #2c3e50;
+            --text-color: #34495e;
+            --primary-color: #3498db;
+            --primary-hover-color: #2980b9;
+            --alert-color: #e74c3c;
+            --alert-bg-color: #fbecec;
+            --border-color: #dfe4ea;
+            --shadow-color: rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--header-color);
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--panel-bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-link {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+            transition: all 0.2s ease-in-out;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        #searchButton {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        #searchButton:hover {
+            background-color: var(--primary-hover-color);
+        }
+
+        .status {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        #logResults {
+            background-color: #fdfdfd;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+        }
+        
+        #alertsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .alert-card {
+            background-color: var(--alert-bg-color);
+            border: 1px solid var(--alert-color);
+            border-left: 5px solid var(--alert-color);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.1);
+        }
+        
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--alert-color);
+            margin-bottom: 10px;
+        }
+        
+        .alert-header svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .alert-body p {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .alert-body strong {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .alert-footer {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: right;
+        }
+        
     </style>
 </head>
 <body>
 
+    <div class="header">
+        <h1>Argos - Painel de Monitoramento</h1>
+    </div>
+
     <div class="container">
-        <h1>Buscador de Logs</h1>
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Digite um termo para buscar (ex: ERROR)">
-            <button id="searchButton">Buscar Logs</button>
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'Alerts')">
+                Alertas de Segurança
+                <span id="alert-counter" style="display: none; background: #e74c3c; color: white; border-radius: 10px; padding: 2px 8px; font-size: 12px; margin-left: 5px;"></span>
+            </button>
+            <button class="tab-link" onclick="openTab(event, 'Logs')">Buscador de Logs</button>
         </div>
-        <div id="status"></div>
-        <pre id="results">Os resultados da busca aparecerão aqui...</pre>
+
+        <div id="Alerts" class="tab-content" style="display: block;">
+            <div id="alertStatus" class="status">Buscando alertas...</div>
+            <div id="alertsContainer">
+                </div>
+        </div>
+
+        <div id="Logs" class="tab-content">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Busque por usuário, IP, mensagem, etc.">
+                <button id="searchButton">Buscar Logs</button>
+            </div>
+            <div id="logStatus" class="status"></div>
+            <pre id="logResults">Os resultados da busca aparecerão aqui...</pre>
+        </div>
     </div>
 
     <script>
+        const logResultsDiv = document.getElementById('logResults');
+        const logStatusDiv = document.getElementById('logStatus');
+        const alertStatusDiv = document.getElementById('alertStatus');
+        const alertsContainer = document.getElementById('alertsContainer');
         const searchInput = document.getElementById('searchInput');
         const searchButton = document.getElementById('searchButton');
-        const resultsDiv = document.getElementById('results');
-        const statusDiv = document.getElementById('status');
+        const alertCounter = document.getElementById('alert-counter');
+
+        const alertIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>`;
+
+        function formatTimestamp(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        }
+        
+        function openTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
 
         async function searchLogs() {
             const searchTerm = searchInput.value;
-            
-            statusDiv.textContent = 'Buscando...';
-            resultsDiv.textContent = '';
-
+            logStatusDiv.textContent = 'Buscando...';
+            logResultsDiv.textContent = '';
             try {
                 const response = await fetch(`http://localhost:5000/search?q=${encodeURIComponent(searchTerm)}`);
-
-                if (!response.ok) {
-                    throw new Error(`Erro na rede: ${response.statusText}`);
-                }
-
+                if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
                 const logs = await response.json();
-                
                 if (logs.length > 0) {
-                    statusDiv.textContent = `Encontrados ${logs.length} resultados.`;
-                    resultsDiv.textContent = JSON.stringify(logs, null, 2);
+                    logStatusDiv.textContent = `Encontrados ${logs.length} resultados.`;
+                    logResultsDiv.textContent = JSON.stringify(logs, null, 2);
                 } else {
-                    statusDiv.textContent = 'Nenhum resultado encontrado.';
-                    resultsDiv.textContent = 'Tente um termo diferente ou deixe em branco para ver os logs mais recentes.';
+                    logStatusDiv.textContent = 'Nenhum resultado encontrado.';
                 }
-
             } catch (error) {
                 console.error('Falha ao buscar logs:', error);
-                statusDiv.textContent = 'Erro ao conectar com o backend.';
-                resultsDiv.textContent = `Verifique se os contêineres Docker estão rodando e se não há erros no console do navegador (F12).\n\nDetalhes: ${error.message}`;
+                logStatusDiv.textContent = 'Erro ao conectar com o backend.';
             }
         }
-        
+
+        async function fetchAlerts() {
+            try {
+                const response = await fetch(`http://localhost:5000/alerts`);
+                if (!response.ok) throw new Error(`Erro na rede: ${response.statusText}`);
+                const alerts = await response.json();
+
+                alertsContainer.innerHTML = ''; 
+
+                if (alerts.length > 0) {
+                    alertStatusDiv.textContent = `Exibindo os ${alerts.length} alertas mais recentes.`;
+                    alertCounter.textContent = alerts.length;
+                    alertCounter.style.display = 'inline-block';
+
+                    alerts.forEach(alert => {
+                        const card = document.createElement('div');
+                        card.className = 'alert-card';
+                        
+                        const log = alert.suspicious_log;
+                        const cardContent = `
+                            <div class="alert-header">
+                                ${alertIconSVG}
+                                <span>Atividade Suspeita</span>
+                            </div>
+                            <div class="alert-body">
+                                <p><strong>Motivo:</strong> ${alert.reason}</p>
+                                <p><strong>Usuário:</strong> ${log.user?.name || 'N/A'}</p>
+                                <p><strong>IP de Origem:</strong> ${log.source?.ip || 'N/A'}</p>
+                                <p><strong>Mensagem Original:</strong> "${log.message}"</p>
+                            </div>
+                            <div class="alert-footer">
+                                ${formatTimestamp(alert['@timestamp'])}
+                            </div>
+                        `;
+                        card.innerHTML = cardContent;
+                        alertsContainer.appendChild(card);
+                    });
+                } else {
+                    alertStatusDiv.textContent = 'Nenhum alerta de segurança detectado.';
+                    alertCounter.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Falha ao buscar alertas:', error);
+                alertStatusDiv.textContent = 'Erro ao buscar alertas.';
+            }
+        }
+
         searchButton.addEventListener('click', searchLogs);
         searchInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                searchLogs();
-            }
+            if (event.key === 'Enter') searchLogs();
         });
 
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAlerts();
+            searchLogs();
+            setInterval(fetchAlerts, 10000);
+        });
     </script>
 </body>
 </html>

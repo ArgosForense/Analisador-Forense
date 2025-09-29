@@ -54,5 +54,23 @@ def search():
     except Exception as e:
         return jsonify({"error": f"Erro durante a busca: {e}"}), 500
 
+@app.route('/alerts', methods=['GET'])
+def get_alerts():
+    try:
+        response = es.search(
+            index="alerts",
+            body={
+                "size": 50,
+                "sort": [{"@timestamp": "desc"}]
+            }
+        )
+        hits = [hit['_source'] for hit in response['hits']['hits']]
+        return jsonify(hits)
+    except Exception as e:
+        if "index_not_found_exception" in str(e):
+            return jsonify([])
+        return jsonify({"error": f"Erro durante a busca de alertas: {e}"}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
