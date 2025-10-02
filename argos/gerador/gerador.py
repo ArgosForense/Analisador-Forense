@@ -11,16 +11,16 @@ LOG_FILE_PATH = "/var/log/gerador.log"
 TIMEZONE = pytz.timezone('America/Sao_Paulo')
 
 FUNCIONARIOS = [
-    {"user": "ana.silva", "equipe": "financeiro", "ip_normal": "187.15.22.10", "role": "analyst"},
-    {"user": "roberto.gomes", "equipe": "financeiro", "ip_normal": "187.15.22.11", "role": "manager"},
-    {"user": "carla.monteiro", "equipe": "rh", "ip_normal": "187.15.23.20", "role": "recruiter"},
-    {"user": "julio.cesar", "equipe": "rh", "ip_normal": "187.15.23.21", "role": "coordinator"},
-    {"user": "fernanda.lima", "equipe": "comercial", "ip_normal": "187.15.24.30", "role": "broker"},
-    {"user": "marcos.almeida", "equipe": "comercial", "ip_normal": "187.15.24.31", "role": "broker_lead"},
-    {"user": "lucas.pereira", "equipe": "operacional", "ip_normal": "187.15.25.40", "role": "support"},
-    {"user": "patricia.freitas", "equipe": "operacional", "ip_normal": "187.15.25.41", "role": "support"},
-    {"user": "ricardo.mendes", "equipe": "compliance", "ip_normal": "187.15.26.50", "role": "auditor"},
-    {"user": "sandra.nunes", "equipe": "compliance", "ip_normal": "187.15.26.51", "role": "officer"},
+    {"usuario": "ana.silva", "equipe": "financeiro", "ip_normal": "187.15.22.10", "cargo": "analista"},
+    {"usuario": "roberto.gomes", "equipe": "financeiro", "ip_normal": "187.15.22.11", "cargo": "gerente"},
+    {"usuario": "carla.monteiro", "equipe": "rh", "ip_normal": "187.15.23.20", "cargo": "recrutadora"},
+    {"usuario": "julio.cesar", "equipe": "rh", "ip_normal": "187.15.23.21", "cargo": "coordenador"},
+    {"usuario": "fernanda.lima", "equipe": "comercial", "ip_normal": "187.15.24.30", "cargo": "corretora"},
+    {"usuario": "marcos.almeida", "equipe": "comercial", "ip_normal": "187.15.24.31", "cargo": "corretor"},
+    {"usuario": "lucas.pereira", "equipe": "operacional", "ip_normal": "187.15.25.40", "cargo": "auxiliar"},
+    {"usuario": "patricia.freitas", "equipe": "operacional", "ip_normal": "187.15.25.41", "cargo": "suporte"},
+    {"usuario": "ricardo.mendes", "equipe": "compliance", "ip_normal": "187.15.26.50", "cargo": "auditor"},
+    {"usuario": "sandra.nunes", "equipe": "compliance", "ip_normal": "187.15.26.51", "cargo": "diretora"},
 ]
 
 IPS_SUSPEITOS = {
@@ -56,57 +56,57 @@ def gerar_timestamp_aleatorio():
     segundo = random.randint(0, 59)
     return now.replace(hour=hora, minute=minuto, second=segundo, microsecond=0)
 
-def escrever_log_no_arquivo(f, log_entry):
-    f.write(json.dumps(log_entry) + '\n')
+def escrever_log_no_arquivo(f, entrada_log):
+    f.write(json.dumps(entrada_log) + '\n')
 
 def gerar_log_normal(f):
     funcionario = random.choice(FUNCIONARIOS)
     timestamp = gerar_timestamp_aleatorio()
-    log_entry = {
+    entrada_log = {
         "@timestamp": timestamp.isoformat(),
-        "event.action": "login_success",
-        "user.name": funcionario["user"],
-        "user.team": funcionario["equipe"],
-        "user.role": funcionario["role"],
-        "source.ip": funcionario["ip_normal"],
-        "message": f"User '{funcionario['user']}' successfully logged in from IP {funcionario['ip_normal']}"
+        "evento": "entrada_efetuada",
+        "nome": funcionario["usuario"],
+        "equipe": funcionario["equipe"],
+        "cargo": funcionario["cargo"],
+        "ip_origem": funcionario["ip_normal"],
+        "mensagem": f"Usuario '{funcionario['usuario']}' logou com sucesso do IP {funcionario['ip_normal']}"
     }
-    escrever_log_no_arquivo(f, log_entry)
-    print(f"Log Normal Gerado: Login sucesso para {funcionario['user']}.")
+    escrever_log_no_arquivo(f, entrada_log)
+    print(f"Log Normal Gerado: Entrada efetuada para {funcionario['usuario']}.")
 
 def gerar_log_falha_multipla(f):
     ip_ataque = IPS_SUSPEITOS["tentativas_falhas"]
-    usuario_alvo = random.choice(FUNCIONARIOS)["user"]
+    usuario_alvo = random.choice(FUNCIONARIOS)["usuario"]
     num_tentativas = random.randint(5, 12)
     print(f"ALERTA: Gerando {num_tentativas} tentativas de login falhas do IP {ip_ataque}...")
     timestamp_base = gerar_timestamp_aleatorio()
     for i in range(num_tentativas):
         timestamp = timestamp_base + datetime.timedelta(seconds=i*2)
-        log_entry = {
+        entrada_log = {
             "@timestamp": timestamp.isoformat(),
-            "event.action": "login_failure",
-            "user.name": usuario_alvo,
-            "source.ip": ip_ataque,
-            "message": f"Failed login attempt for user '{usuario_alvo}' from IP {ip_ataque}. Reason: Invalid credentials."
+            "evento": "entrada_falhou",
+            "nome": usuario_alvo,
+            "ip_origem": ip_ataque,
+            "mensagem": f"Tentativa de login falha para o '{usuario_alvo}' do IP {ip_ataque}. Motivo: Credenciais invalidas."
         }
-        escrever_log_no_arquivo(f, log_entry)
+        escrever_log_no_arquivo(f, entrada_log)
 
 def gerar_log_acesso_ip_incomum(f):
     funcionario = random.choice(FUNCIONARIOS)
     ip_incomum = IPS_SUSPEITOS["localidade_incomum"]
     timestamp = gerar_timestamp_aleatorio()
-    log_entry = {
+    entrada_log = {
         "@timestamp": timestamp.isoformat(),
-        "event.action": "login_success",
-        "event.category": "suspicious",
-        "user.name": funcionario["user"],
-        "user.team": funcionario["equipe"],
-        "source.ip": ip_incomum,
-        "source.geo.country_name": "Russia",
-        "message": f"SUSPICIOUS: Successful login for user '{funcionario['user']}' from an unusual IP {ip_incomum}"
+        "evento": "entrada_efetuada",
+        "categoria": "suspeito",
+        "nome": funcionario["usuario"],
+        "equipe": funcionario["equipe"],
+        "ip_origem": ip_incomum,
+        "nome_pais_origem": "Londres",
+        "mensagem": f"SUSPEITO: Entrada efetuada do usuario '{funcionario['usuario']}' de um IP incomum {ip_incomum}"
     }
-    escrever_log_no_arquivo(f, log_entry)
-    print(f"ALERTA: Gerado acesso de IP incomum para {funcionario['user']}.")
+    escrever_log_no_arquivo(f, entrada_log)
+    print(f"ALERTA: Gerado acesso de IP incomum para {funcionario['usuario']}.")
 
 def gerar_log_fora_de_horario(f):
     funcionario = random.choice(FUNCIONARIOS)
@@ -114,17 +114,17 @@ def gerar_log_fora_de_horario(f):
     hora = random.choice([random.randint(22, 23), random.randint(0, 5)])
     minuto = random.randint(0, 59)
     timestamp = now.replace(hour=hora, minute=minuto, microsecond=0)
-    log_entry = {
+    entrada_log = {
         "@timestamp": timestamp.isoformat(),
-        "event.action": "login_success",
-        "event.category": "suspicious",
-        "user.name": funcionario["user"],
-        "user.team": funcionario["equipe"],
-        "source.ip": funcionario["ip_normal"],
-        "message": f"SUSPICIOUS: Successful login for user '{funcionario['user']}' outside of business hours."
+        "evento": "entrada_efetuada",
+        "categoria": "suspeito",
+        "nome": funcionario["usuario"],
+        "equipe": funcionario["equipe"],
+        "ip_origem": funcionario["ip_normal"],
+        "mensagem": f"SUSPEITO: Entrada efetuada do usuario '{funcionario['usuario']}' fora do horario comercial."
     }
-    escrever_log_no_arquivo(f, log_entry)
-    print(f"ALERTA: Gerado acesso fora de hora para {funcionario['user']}.")
+    escrever_log_no_arquivo(f, entrada_log)
+    print(f"ALERTA: Gerado acesso fora de hora para {funcionario['usuario']}.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Gerador de Logs de Acesso com listeners de porta.")

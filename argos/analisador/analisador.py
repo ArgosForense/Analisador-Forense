@@ -7,7 +7,7 @@ IPS_SUSPEITOS = {
     "localidade_incomum": "103.77.200.15"
 }
 
-def connect_to_elasticsearch():
+def conenctando_elasticsearch():
     es = None
     MAX_RETRIES = 50
     RETRY_DELAY_SECONDS = 5
@@ -27,19 +27,19 @@ def connect_to_elasticsearch():
             time.sleep(RETRY_DELAY_SECONDS)
     return None
 
-def create_alert(es, log_entry, reason):
-    alert = {
-        "@timestamp": log_entry["@timestamp"],
-        "reason": reason,
-        "suspicious_log": log_entry
+def criar_alertas(es, entrada_log, motivo):
+    alertas = {
+        "@timestamp": entrada_log["@timestamp"],
+        "motivo": motivo,
+        "log_suspeito": entrada_log
     }
     try:
-        es.index(index="alerts", document=alert)
-        print(f"ALERTA GERADO: {reason} para o usuário {log_entry.get('user.name', 'N/A')}")
+        es.index(index="alertas", document=alertas)
+        print(f"ALERTAS GERADO: {motivo} para o usuário {entrada_log.get('nome', 'N/A')}")
     except Exception as e:
-        print(f"Erro ao criar alerta: {e}")
+        print(f"Erro ao criar alertas: {e}")
 
-def analyze_logs(es):
+def analisando_logs(es):
     last_checked_timestamp = "now-1m"
 
     while True:
@@ -62,18 +62,18 @@ def analyze_logs(es):
 
             if hits:
                 for hit in hits:
-                    log_entry = hit['_source']
+                    entrada_log = hit['_source']
                     
-                    last_checked_timestamp = log_entry["@timestamp"]
+                    last_checked_timestamp = entrada_log["@timestamp"]
 
-                    source_ip = log_entry.get("source.ip")
-                    if source_ip in IPS_SUSPEITOS.values():
-                        reason = f"Atividade suspeita detectada do IP: {source_ip}"
-                        create_alert(es, log_entry, reason)
+                    ip_origem = entrada_log.get("ip_origem")
+                    if ip_origem in IPS_SUSPEITOS.values():
+                        motivo = f"Atividade suspeita detectada do IP: {ip_origem}"
+                        criar_alertas(es, entrada_log, motivo)
 
-                    if log_entry.get("event.category") == "suspicious":
-                        reason = f"Evento categorizado como suspeito: {log_entry.get('message', '')}"
-                        create_alert(es, log_entry, reason)
+                    if entrada_log.get("categoria") == "suspeito":
+                        motivo = f"Evento categorizado como suspeito: {entrada_log.get('mensagem', '')}"
+                        criar_alertas(es, entrada_log, motivo)
                 
                 last_checked_timestamp = hits[-1]['_source']['@timestamp']
 
@@ -84,11 +84,11 @@ def analyze_logs(es):
         time.sleep(10)
 
 if __name__ == "__main__":
-    es_client = connect_to_elasticsearch()
+    es_client = conenctando_elasticsearch()
     if es_client:
-        if not es_client.indices.exists(index="alerts"):
-            es_client.indices.create(index="alerts")
-        analyze_logs(es_client)
+        if not es_client.indices.exists(index="alertas"):
+            es_client.indices.create(index="alertas")
+        analisando_logs(es_client)
     else:
         print("Analisador: Não foi possível conectar ao Elasticsearch. Encerrando.")
         sys.exit(1)

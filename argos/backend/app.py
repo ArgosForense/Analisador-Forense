@@ -35,7 +35,7 @@ def process_hits(hits):
     results = []
     for hit in hits:
         source = hit['_source']
-        source['id'] = hit['_id']  # Adiciona o ID único aqui
+        source['id'] = hit['_id']
         results.append(source)
     return results
 
@@ -50,7 +50,7 @@ def search():
             "query": {
                 "multi_match": {
                     "query": query_term,
-                    "fields": ["message", "user.name", "source.ip", "event.action"]
+                    "fields": ["mensagem", "nome", "ip_origem", "evento"]
                 }
             }
         }
@@ -60,24 +60,22 @@ def search():
 
     try:
         response = es.search(index="filebeat-*", body=query_body)
-        # USA A NOVA FUNÇÃO PARA PROCESSAR OS RESULTADOS
         return jsonify(process_hits(response['hits']['hits']))
     except Exception as e:
-        return jsonify({"error": f"Erro durante a busca: {e}"}), 500
+        return jsonify({f"Erro durante a busca: {e}"}), 500
 
-@app.route('/alerts', methods=['GET'])
-def get_alerts():
+@app.route('/alertas', methods=['GET'])
+def get_alertas():
     try:
         response = es.search(
-            index="alerts",
+            index="alertas",
             body={"size": 50, "sort": [{"@timestamp": "desc"}]}
         )
-        # USA A NOVA FUNÇÃO PARA PROCESSAR OS RESULTADOS
         return jsonify(process_hits(response['hits']['hits']))
     except Exception as e:
         if "index_not_found_exception" in str(e):
             return jsonify([])
-        return jsonify({"error": f"Erro durante a busca de alertas: {e}"}), 500
+        return jsonify({f"Erro durante a busca de alertas: {e}"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
