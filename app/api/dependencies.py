@@ -8,8 +8,8 @@ from app.core.config import settings
 from app.models.user_model import Usuario
 from app.models.gestor_model import Gestor
 
-# A URL do token agora aponta para a nova rota de login no auth_router
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# A URL do token agora aponta para a nova rota de login no auth_router # (tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login-form")
 
 def get_db():
     """
