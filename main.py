@@ -1,26 +1,36 @@
 from fastapi import FastAPI
-from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer # cria a estrutura de tokens bearer
-from dotenv import load_dotenv
-import os
+from app.core.database import create_db_and_tables
+from app.api.routes import auth_router, user_router, perfil_router, permissao_router, empresa_router, gestor_router
 
-load_dotenv() 
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACESS_TOKEN_EXPIRE_MINUTES"))
+# Função que será executada na inicialização da aplicação
+def startup_event():
+    """
+    Cria as tabelas no banco de dados, caso elas não existam.
+    """
+    create_db_and_tables()
 
-app = FastAPI()
+# Cria a instância principal da aplicação FastAPI
+app = FastAPI(
+    title="Analisador Forense API",
+    description="Sistema para gestão de usuários, perfis e permissões.",
+    version="1.0.0"
+)
 
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oath2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-form") # !!!! eh necessario para passar o token como um header ao inves do body na requisição !!!! temporário
+# Registra a função de startup
+app.add_event_handler("startup", startup_event)
 
-# Roteadores
-from auth_routes import auth_router
-from order_routes import order_router, permissoes_router
+# Inclui todos os roteadores na aplicação
+app.include_router(auth_router.router)
+app.include_router(user_router.router)
+app.include_router(perfil_router.router)
+app.include_router(permissao_router.router)
+app.include_router(empresa_router.router)
+app.include_router(gestor_router.router)
 
-app.include_router(auth_router)
-app.include_router(order_router)
-app.include_router(permissoes_router)
-
-# para rodar o código, executar no terminal: uvicorn main:app --reload
+@app.get("/", tags=["Root"])
+def read_root():
+    """
+    Endpoint raiz para verificar se a API está funcionando.
+    """
+    return {"status": "API is running"}
