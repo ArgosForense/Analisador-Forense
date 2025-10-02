@@ -1,52 +1,65 @@
-import React ,{useState} from "react";
-import Sidebar from './components/Sidebar';
-import Topbar from './components/Topbar';
-import GerenciadorPerfisView from './views/GerenciadorPerfisView';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStatus } from './ViewModels/useAuthStatus';
 
-//Dados de mock(simulando API)
-const PERFIS_MOCK = [
-    {id:1, nome: 'Analista Jr', permissoes:['ver_alertas']},
-    {id:2, nome: 'Analista Sr', permissoes:['ver_alertas','escalar_incidentes']},
-    {id:3, nome: 'Gerente SOC', permissoes:['ver_alertas', 'escalar_incidentes', 'gerenciar_firewall']},
-];
-const PERMISSOES_MOCK = [
-    'ver_alertas',
-    'escalar_incidentes',
-    'gerenciar_firewall',
-    'auditar_logs',
-    'gerenciar_usuarios',
-    'acessar_configuracoes'
-]
-function App(){
-    const [perfis, setPerfis] = useState(PERFIS_MOCK);
-    const [permissoesDisponiveis] = useState(PERMISSOES_MOCK);
+// Views
+import { LoginScreen } from './Components/Auth/LoginScreen';
+import { LogMonitorTable } from './Components/Monitoring/LogMonitorTable';
+import { AlertsList } from './Components/Monitoring/AlertsList';
+import { NewUserForm } from './Components/Users/NewUserForm';
+import { ProfileForm } from './Components/Permissions/ProfileForm'; // HU-7
+import { MainLayout } from './Components/Layout/MainLayout'; // Layout com o Menu Superior
 
-    const adicionarPerfil = (novoPerfil) => {
-        setPerfis([...perfis, {...novoPerfil, id: Date.now()}]);
-    };
-    const deletarPerfil = (id) => {
-        setPerfis(perfis.filter(perfil => perfil.id !==id));
-    };
+// Componente para proteger rotas (garantir que o usuário esteja logado)
+const ProtectedRoute = ({ children }) => {
+    const { isAuthenticated } = useAuthStatus();
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+    return children;
+};
 
-    //Gerencia view que esta ativa 
-    const [activeView, setActiveView] = useState('users-permissions');
+function App() {
+  const { login } = useAuthStatus();
+  
+  // Passa a função de login para a tela de login
+  // (A tela de login deve chamar 'login()' em caso de sucesso)
 
-    return (
-        <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <Sidebar activeView={activeView} setActiveView={setActiveView}/>
-        <div className="flex-1 p-6">
-        <Topbar />
-        <main className="flex-1 p-6">
-        <GerenciadorPerfisView
-        perfis = {perfis}
-        permissoesDisponiveis = {permissoesDisponiveis}
-        onAdicionarPerfil = {adicionarPerfil}
-        onDeletarPerfil = {deletarPerfil}
-        />
-        </main>
-        </div>
-        </div>
-    )
+  return (
+    <Router>
+      <Routes>
+        
+        {/* Rota de Login (Não Protegida) */}
+        <Route path="/login" element={<LoginScreen onLoginSuccess={login} />} />
+
+        {/* Rota Protegida (Dashboard e Telas Internas) */}
+        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+          
+          {/* Rota Inicial (Redireciona para Logs) */}
+          <Route index element={<Navigate to="/logs" replace />} />
+          
+          {/* HU-13: Logs */}
+          <Route path="/logs" element={<LogMonitorTable />} />
+          
+          {/* Lista de Alertas */}
+          <Route path="/alerts" element={<AlertsList />} />
+          
+          {/* HU-1, HU-7, HU-8: Gestão de Usuários e Perfis */}
+          <Route path="/users" element={
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <NewUserForm /> {/* HU-1 (Incluir Usuário) e HU-8 (Atribuir Perfil) */}
+              <ProfileForm /> {/* HU-7 (Criar Perfil) */}
+            </div>
+          } />
+
+        </Route>
+        
+        {/* Rota para qualquer URL não encontrada */}
+        <Route path="*" element={<Navigate to="/logs" />} />
+        
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
