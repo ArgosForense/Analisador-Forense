@@ -8,24 +8,27 @@ from app.schemas.gestor_schema import GestorCreateSchema, GestorResponseSchema
 from app.schemas.empresa_schema import EmpresaCreateSchema, EmpresaResponseSchema
 from app.models.user_model import Usuario
 from app.models.gestor_model import Gestor
+from app.schemas.auth_schema import LoginSchema
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
 
 @router.post("/login", response_model=TokenResponseSchema)
-def login(
+def login(*,
     db: Session = Depends(dependencies.get_db), 
-    form_data: OAuth2PasswordRequestForm = Depends()
+    ###form_data: OAuth2PasswordRequestForm = Depends()
+    login_data: LoginSchema
 ):
     """
     Autentica um gestor ou usuário e retorna tokens de acesso e de atualização.
     O 'username' do formulário é o e-mail.
     """
-    return auth_service.login_for_access_token(db=db, form_data=form_data)
+    ###return auth_service.login_for_access_token(db=db, form_data=form_data)
+    return auth_service.login_for_access_token(db=db, login_data=login_data)
 
 @router.post("/login-form", response_model=TokenResponseSchema, include_in_schema=False)
-def login_form(
+def login_form( 
     *,
     db: Session = Depends(dependencies.get_db), 
     form_data: OAuth2PasswordRequestForm = Depends()
@@ -33,7 +36,9 @@ def login_form(
     """
     Rota para testes de autorização via documentação (Swagger UI).
     """
-    return auth_service.login_for_access_token(db=db, form_data=form_data)
+    login_data = LoginSchema(email=form_data.username, senha=form_data.password)
+    
+    return auth_service.login_for_access_token(db=db, login_data=login_data)
 
 @router.get("/refresh_token", response_model=Token)
 def refresh_access_token(*, current_user: Gestor | Usuario = Depends(dependencies.verificar_token)):

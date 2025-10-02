@@ -10,6 +10,7 @@ from app.models.user_model import Usuario
 from app.models.empresa_model import Empresa
 from app.schemas.gestor_schema import GestorCreateSchema
 from app.schemas.empresa_schema import EmpresaCreateSchema
+from app.schemas.auth_schema import LoginSchema
 
 # Importando os repositórios para desacoplar o acesso ao banco
 from app.repositories.gestor_repository import gestor_repository
@@ -32,21 +33,27 @@ class AuthService:
             return None
         return usuario
 
-    def login_for_access_token(self, db: Session, form_data: OAuth2PasswordRequestForm):
+    ###def login_for_access_token(self, db: Session, form_data: OAuth2PasswordRequestForm):
+    def login_for_access_token(self, db: Session, *, login_data: LoginSchema):
         """
         Lida com o processo de login para Gestor ou Usuário, gerando access e refresh tokens.
         """
-        gestor = self._autenticar_gestor(db, email=form_data.username, senha=form_data.password)
+        ###gestor = self._autenticar_gestor(db, email=form_data.username, senha=form_data.password)
+        gestor = self._autenticar_gestor(db, email=login_data.email, senha=login_data.senha)
         if gestor:
+            data = {"sub": str(gestor.id), "tipo": "gestor"}
             access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
             refresh_token_expires = timedelta(days=7)
             
-            access_token = create_access_token(str(gestor.id), "gestor", expires_delta=access_token_expires)
-            refresh_token = create_access_token(str(gestor.id), "gestor", expires_delta=refresh_token_expires)
+            ### access_token = create_access_token(str(gestor.id), "gestor", expires_delta=access_token_expires)
+            ### refresh_token = create_access_token(str(gestor.id), "gestor", expires_delta=refresh_token_expires)
+            access_token = create_access_token(data=data, expires_delta=access_token_expires)
+            refresh_token = create_access_token(data=data, expires_delta=refresh_token_expires)
             
             return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "tipo": "gestor"}
 
-        usuario = self._autenticar_usuario(db, email=form_data.username, senha=form_data.password)
+        ###usuario = self._autenticar_usuario(db, email=form_data.username, senha=form_data.password)
+        usuario = self._autenticar_usuario(db, email=login_data.email, senha=login_data.senha)
         if usuario:
             if not usuario.is_ativo():
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário desativado.")
@@ -54,8 +61,11 @@ class AuthService:
             access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
             refresh_token_expires = timedelta(days=7)
             
-            access_token = create_access_token(str(usuario.id), "usuario", expires_delta=access_token_expires)
-            refresh_token = create_access_token(str(usuario.id), "usuario", expires_delta=refresh_token_expires)
+            data = {"sub": str(usuario.id), "tipo": "usuario"}
+            ### access_token = create_access_token(str(usuario.id), "usuario", expires_delta=access_token_expires)
+            ### refresh_token = create_access_token(str(usuario.id), "usuario", expires_delta=refresh_token_expires)
+            access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            refresh_token_expires = timedelta(days=7)
             
             return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "tipo": "usuario"}
 
@@ -69,8 +79,9 @@ class AuthService:
         user_type = "gestor" if isinstance(current_user, Gestor) else "usuario"
         
         #access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        new_access_token = create_access_token(data={"sub": str(user_id), "tipo": user_type})
-        
+        #new_access_token = create_access_token(data={"sub": str(user_id), "tipo": user_type})
+        data = {"sub": str(user_id), "tipo": user_type}
+        new_access_token = create_access_token(data=data)
         
         return {"access_token": new_access_token, "token_type": "bearer", "tipo": user_type}
 
