@@ -1,3 +1,0 @@
-flask
-elasticsearch==8.9.0
-flask-cors
