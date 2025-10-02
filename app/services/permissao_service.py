@@ -4,7 +4,7 @@ from app.repositories.permissao_repository import permissao_repository
 from app.schemas.permissao_schema import PermissaoCreateSchema
 
 class PermissaoService:
-    def create_permissao(self, db: Session, *, permissao_in: PermissaoCreateSchema):
+    def criar_permissao(self, db: Session, *, permissao_in: PermissaoCreateSchema):
         permissao_existente = permissao_repository.get_by_name(db, name=permissao_in.nome)
         if permissao_existente:
             raise HTTPException(status_code=400, detail="Permissão já existe")

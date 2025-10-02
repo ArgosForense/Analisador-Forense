@@ -11,7 +11,7 @@ from app.models.gestor_model import Gestor
 # A URL do token agora aponta para a nova rota de login no auth_router # (tokenUrl="/auth/login")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login-form")
 
-def get_db():
+def obter_sessao():
     """
     Função para abrir e fechar a conexão com o banco de dados, 
     sempre fechando a sessão após o uso.
@@ -22,7 +22,7 @@ def get_db():
     finally:
         db.close()
         
-def verificar_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def verificar_token(token: str = Depends(oauth2_scheme), db: Session = Depends(obter_sessao)):
     """
     Valida o token JWT recebido na requisição, garantindo que o usuário está autenticado.
 
@@ -55,10 +55,10 @@ def verificar_token(token: str = Depends(oauth2_scheme), db: Session = Depends(g
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Tipo de usuário inválido no token")
     
-def nivel_acesso_gestor(current_user = Depends(verificar_token)):
+def nivel_acesso_gestor(usuario_logado = Depends(verificar_token)):
     """
     Dependência que garante que apenas gestores autenticados podem acessar a rota.
     """
-    if not isinstance(current_user, Gestor):
+    if not isinstance(usuario_logado, Gestor):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permissão negada. Apenas gestores podem acessar esta rota")
-    return current_user
+    return usuario_logado

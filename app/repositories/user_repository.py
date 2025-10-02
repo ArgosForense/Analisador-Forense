@@ -7,7 +7,7 @@ class UserRepository(BaseRepository[Usuario]):
     def get(self, db: Session, *, user_id: int) -> Usuario | None:
         return db.query(Usuario).filter(Usuario.id == user_id).first()
     
-    def get_by_email(self, db: Session, *, email: str) -> Usuario | None:
+    def get_email(self, db: Session, *, email: str) -> Usuario | None:
         return db.query(Usuario).filter(Usuario.email == email).first()
 
     def create_with_gestor(

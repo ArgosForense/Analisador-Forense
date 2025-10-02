@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 @router.post("/login", response_model=TokenResponseSchema)
 def login(*,
-    db: Session = Depends(dependencies.get_db), 
+    db: Session = Depends(dependencies.obter_sessao), 
     ###form_data: OAuth2PasswordRequestForm = Depends()
     login_data: LoginSchema
 ):
@@ -30,7 +30,7 @@ def login(*,
 @router.post("/login-form", response_model=TokenResponseSchema, include_in_schema=False)
 def login_form( 
     *,
-    db: Session = Depends(dependencies.get_db), 
+    db: Session = Depends(dependencies.obter_sessao), 
     form_data: OAuth2PasswordRequestForm = Depends()
 ):
     """
@@ -41,14 +41,14 @@ def login_form(
     return auth_service.login_for_access_token(db=db, login_data=login_data)
 
 @router.get("/refresh_token", response_model=Token)
-def refresh_access_token(*, current_user: Gestor | Usuario = Depends(dependencies.verificar_token)):
+def refresh_access_token(*, usuario_logado: Gestor | Usuario = Depends(dependencies.verificar_token)):
     """
     Gera um novo token de acesso (access_token) a partir de um token válido.
     
     Isso permite que o cliente renove seu token de acesso sem precisar
     enviar o login e a senha novamente.
     """
-    return auth_service.refresh_token(current_user=current_user)
+    return auth_service.refresh_token(usuario_logado=usuario_logado)
 
 
 
@@ -60,17 +60,17 @@ router_publico = APIRouter(prefix="/auth", tags=["Autenticação"])
 @router_publico.post("/criar_conta", response_model=GestorResponseSchema, status_code=201)
 def create_account(
     gestor_in: GestorCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cria uma nova conta de gestor.
     """
-    return auth_service.create_gestor_account(db=db, gestor_in=gestor_in)
+    return auth_service.criar_conta_gestor(db=db, gestor_in=gestor_in)
 
 @router_publico.post("/cadastrar_empresa", response_model=EmpresaResponseSchema, status_code=201)
 def register_empresa(
     empresa_in: EmpresaCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cadastra uma nova empresa no sistema.

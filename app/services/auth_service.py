@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 
-from app.core.security import create_access_token, verify_password, get_password_hash
+from app.core.security import create_access_token, verificar_senha, gerar_hash_senha
 from app.core.config import settings
 from app.models.gestor_model import Gestor
 from app.models.user_model import Usuario
@@ -21,15 +21,15 @@ class AuthService:
 
     def _autenticar_gestor(self, db: Session, email: str, senha: str) -> Gestor | None:
         """Busca e autentica um gestor."""
-        gestor = gestor_repository.get_by_email(db, email=email)
-        if not gestor or not verify_password(senha, gestor.senha):
+        gestor = gestor_repository.get_email(db, email=email)
+        if not gestor or not verificar_senha(senha, gestor.senha):
             return None
         return gestor
 
     def _autenticar_usuario(self, db: Session, email: str, senha: str) -> Usuario | None:
         """Busca e autentica um usuário."""
-        usuario = user_repository.get_by_email(db, email=email)
-        if not usuario or not verify_password(senha, usuario.senha):
+        usuario = user_repository.get_email(db, email=email)
+        if not usuario or not verificar_senha(senha, usuario.senha):
             return None
         return usuario
 
@@ -71,12 +71,12 @@ class AuthService:
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="E-mail ou senha incorretos.")
 
-    def refresh_token(self, current_user: Gestor | Usuario):
+    def refresh_token(self, usuario_logado: Gestor | Usuario):
         """
         Gera um novo access_token a partir de um token de atualização válido.
         """
-        user_id = current_user.id
-        user_type = "gestor" if isinstance(current_user, Gestor) else "usuario"
+        user_id = usuario_logado.id
+        user_type = "gestor" if isinstance(usuario_logado, Gestor) else "usuario"
         
         #access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         #new_access_token = create_access_token(data={"sub": str(user_id), "tipo": user_type})
@@ -85,18 +85,18 @@ class AuthService:
         
         return {"access_token": new_access_token, "token_type": "bearer", "tipo": user_type}
 
-    def create_gestor_account(self, db: Session, gestor_in: GestorCreateSchema):
+    def criar_conta_gestor(self, db: Session, gestor_in: GestorCreateSchema):
         """Cria uma nova conta de gestor."""
-        gestor_existente = gestor_repository.get_by_email(db, email=gestor_in.email)
+        gestor_existente = gestor_repository.get_email(db, email=gestor_in.email)
         if gestor_existente:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Já existe um gestor com este e-mail.")
             
-        hashed_password = get_password_hash(gestor_in.senha)
+        hashed_password = gerar_hash_senha(gestor_in.senha)
         return gestor_repository.create(db, gestor_in=gestor_in, hashed_password=hashed_password)
 
     def register_empresa(self, db: Session, empresa_in: EmpresaCreateSchema):
         """Registra uma nova empresa."""
-        empresa_existente = empresa_repository.get_by_cnpj(db, cnpj=empresa_in.cnpj)
+        empresa_existente = empresa_repository.get_cnpj(db, cnpj=empresa_in.cnpj)
         if empresa_existente:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Já existe uma empresa com este CNPJ.")
             

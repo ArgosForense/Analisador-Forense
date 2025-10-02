@@ -10,7 +10,7 @@ router = APIRouter(prefix="/empresas", tags=["Empresas"])
 def register_empresa(
     *,
     empresa_in: EmpresaCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cadastra uma nova empresa no sistema.

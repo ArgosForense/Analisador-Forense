@@ -34,3 +34,5 @@ def read_root():
     Endpoint raiz para verificar se a API está funcionando.
     """
     return {"status": "API is running"}
+
+# para rodar o código, executar no terminal: uvicorn main:app --reload

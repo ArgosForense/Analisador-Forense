@@ -10,7 +10,7 @@ router = APIRouter(prefix="/gestores", tags=["Gestores"])
 def create_account(
     *,
     gestor_in: GestorCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cria uma nova conta de gestor, vinculada a uma empresa existente.

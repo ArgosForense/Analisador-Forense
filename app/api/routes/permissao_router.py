@@ -11,10 +11,10 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=PermissaoResponseSchema, status_code=201)
-def create_permissao(
+def criar_permissao(
     *,
     permissao_in: PermissaoCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cria uma nova permissão no sistema.

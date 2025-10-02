@@ -4,6 +4,6 @@ from app.schemas.gestor_schema import GestorCreateSchema
 
 class GestorController:
     def create_new_account(self, db: Session, *, gestor_in: GestorCreateSchema):
-        return gestor_service.create_gestor_account(db=db, gestor_in=gestor_in)
+        return gestor_service.criar_conta_gestor(db=db, gestor_in=gestor_in)
 
 gestor_controller = GestorController()

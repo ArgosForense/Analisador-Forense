@@ -5,7 +5,7 @@ from app.schemas.empresa_schema import EmpresaCreateSchema
 from .base_repository import BaseRepository
 
 class EmpresaRepository(BaseRepository[Empresa]):
-    def get_by_cnpj(self, db: Session, *, cnpj: str) -> Empresa | None:
+    def get_cnpj(self, db: Session, *, cnpj: str) -> Empresa | None:
         return db.query(Empresa).filter(Empresa.cnpj == cnpj).first()
     
     def create(self, db: Session, *, empresa_in: EmpresaCreateSchema) -> Empresa:

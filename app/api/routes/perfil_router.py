@@ -11,10 +11,10 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=PerfilResponseSchema, status_code=201)
-def create_perfil(
+def criar_perfil(
     *,
     perfil_in: PerfilCreateSchema,
-    db: Session = Depends(dependencies.get_db)
+    db: Session = Depends(dependencies.obter_sessao)
 ):
     """
     Cria um novo perfil com um conjunto de permissões.

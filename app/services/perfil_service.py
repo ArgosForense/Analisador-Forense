@@ -4,7 +4,7 @@ from app.models.perfil_model import Perfil, Permissao
 from app.schemas.perfil_schema import PerfilCreateSchema
 
 class PerfilService:
-    def create_perfil(self, db: Session, *, perfil_in: PerfilCreateSchema) -> Perfil:
+    def criar_perfil(self, db: Session, *, perfil_in: PerfilCreateSchema) -> Perfil:
         # 1. Busca os objetos de Permissao com base nos IDs recebidos
         permissoes_encontradas = db.query(Permissao).filter(Permissao.id.in_(perfil_in.permissoes_ids)).all()
         
