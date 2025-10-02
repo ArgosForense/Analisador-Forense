@@ -30,7 +30,7 @@ def criar_usuario(
     - O sistema gera e envia as credenciais (e-mail institucional e senha) para o e-mail pessoal informado.
     - **Acesso:** Apenas Gestores.
     """
-    return user_controller.create_new_user(db=db, user_in=user_in, current_gestor=current_gestor)
+    return user_controller.criar_novo_usuario(db=db, user_in=user_in, current_gestor=current_gestor)
 
 @router.post("/{user_id}/ativar", response_model=UserResponseSchema)
 def ativar_usuario(
@@ -44,7 +44,7 @@ def ativar_usuario(
     - Um usuário ativado pode fazer login no sistema.
     - **Acesso:** Apenas Gestores.
     """
-    return user_controller.activate_existing_user(db=db, user_id=user_id)
+    return user_controller.ativar_usuario(db=db, user_id=user_id)
 
 @router.post("/{user_id}/desativar", response_model=UserResponseSchema)
 def desativar_usuario(
