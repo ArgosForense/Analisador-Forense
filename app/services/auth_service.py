@@ -57,15 +57,13 @@ class AuthService:
         if usuario:
             if not usuario.is_ativo():
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário desativado.")
-            
-            access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-            refresh_token_expires = timedelta(days=7)
-            
+           
             data = {"sub": str(usuario.id), "tipo": "usuario"}
-            ### access_token = create_access_token(str(usuario.id), "usuario", expires_delta=access_token_expires)
-            ### refresh_token = create_access_token(str(usuario.id), "usuario", expires_delta=refresh_token_expires)
             access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
             refresh_token_expires = timedelta(days=7)
+            
+            access_token = create_access_token(data=data, expires_delta=access_token_expires)
+            refresh_token = create_access_token(data=data, expires_delta=refresh_token_expires)
             
             return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "tipo": "usuario"}
 
