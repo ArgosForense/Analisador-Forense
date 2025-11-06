@@ -5,11 +5,9 @@ import { Header } from './Header';
 export const MainLayout = () => {
     const navigate = useNavigate();
     
-    // Simulação do estado do usuário logado (deve ser gerenciado por um Context/Store)
     const user = { name: 'Matheus Vinycius', profile: 'Gestor de SOC' };
 
     const handleLogout = () => {
-        // Lógica real de logout (limpar token, etc.)
         console.log("Usuário deslogado.");
         navigate('/login');
     };

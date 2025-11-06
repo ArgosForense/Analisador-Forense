@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 export const useAuthStatus = () => {
-  // Simula o estado de autenticação. Em uma aplicação real, isso checaria um token JWT.
   const [isAuthenticated, setIsAuthenticated] = useState(
       localStorage.getItem('isAuth') === 'true'
   );

@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-//import { mockProfiles } from '../Models/logs';
-// Adicione a definição do Model (simulada) diretamente aqui para evitar o erro de path:
+
 const mockProfiles = [
   { id: 1, name: 'Gestor de SOC' },
   { id: 2, name: 'Analista de Segurança Nível 1' },
@@ -42,7 +41,6 @@ export const useNewUserViewModel = () => {
     }
     if (!formData.profileId) newErrors.profileId = 'Perfil é obrigatório (HU-8/RN02).';
 
-    // Simulação de "Usuário existente" (Critério 2)
     if (formData.email === 'user@existente.com') {
       newErrors.email = 'Usuário já existe no sistema.';
     }
@@ -60,7 +58,6 @@ export const useNewUserViewModel = () => {
       console.log('Dados a serem enviados:', formData);
       await new Promise(resolve => setTimeout(resolve, 1500));
       alert(`Usuário ${formData.name} adicionado com sucesso!`);
-      // Limpar formulário se necessário
     } catch (apiError) {
       setErrors(prev => ({ ...prev, general: 'Erro ao incluir usuário.' }));
     } finally {

@@ -2,7 +2,6 @@ import React from 'react';
 import { useRealTimeLogViewModel } from '../../ViewModels/useRealTimeLogViewModel';
 
 export const LogMonitorTable = () => {
-  // O ViewModel agora retorna o termo de busca (searchTerm) e a função para atualizá-lo (setSearchTerm)
   const { logs, isLoading, searchTerm, setSearchTerm } = useRealTimeLogViewModel();
 
   const getSeverityColor = (severity) => {

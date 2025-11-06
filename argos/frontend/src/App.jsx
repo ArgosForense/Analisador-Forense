@@ -2,15 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStatus } from './ViewModels/useAuthStatus';
 
-// Views
 import { LoginScreen } from './Components/Auth/LoginScreen';
-import { LogMonitorTable } from './Components/Monitoring/LogMonitorTable';
+import { LogDashboardScreen } from './Components/Dashboard/LogDashboardScreen'; 
 import { AlertsList } from './Components/Monitoring/AlertsList';
 import { NewUserForm } from './Components/Users/NewUserForm';
-import { ProfileForm } from './Components/Permissions/ProfileForm'; // HU-7
-import { MainLayout } from './Components/Layout/MainLayout'; // Layout com o Menu Superior
+import { ProfileForm } from './Components/Permissions/ProfileForm'; 
+import { MainLayout } from './Components/Layout/MainLayout';
 
-// Componente para proteger rotas (garantir que o usuário esteja logado)
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStatus();
     if (!isAuthenticated) {
@@ -22,8 +20,6 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const { login } = useAuthStatus();
   
-  // Passa a função de login para a tela de login
-  // (A tela de login deve chamar 'login()' em caso de sucesso)
 
   return (
     <Router>
@@ -38,8 +34,8 @@ function App() {
           {/* Rota Inicial (Redireciona para Logs) */}
           <Route index element={<Navigate to="/logs" replace />} />
           
-          {/* HU-13: Logs */}
-          <Route path="/logs" element={<LogMonitorTable />} />
+          {/* HU-13: Logs - AGORA USANDO O NOVO DASHBOARD */}
+          <Route path="/logs" element={<LogDashboardScreen />} />
           
           {/* Lista de Alertas */}
           <Route path="/alerts" element={<AlertsList />} />

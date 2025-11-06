@@ -1,9 +1,7 @@
-// src/ViewModels/useRealTimeLogViewModel.js
-
 import { useState, useEffect, useCallback } from 'react';
 
 const API_URL = 'http://localhost:5000';
-const LOG_UPDATE_INTERVAL = 300000; // 5 minutos
+const LOG_UPDATE_INTERVAL = 300000; 
 
 const getSeverity = (log) => {
   if (log.categoria === 'suspeito') return 'WARNING';

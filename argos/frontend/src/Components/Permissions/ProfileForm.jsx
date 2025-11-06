@@ -1,9 +1,6 @@
 import React from 'react';
-// import { useProfileViewModel } from '../../ViewModels/useProfileViewModel'; 
-// O ViewModel para HU-7 deve ser criado, seguindo a estrutura de useNewUserViewModel
 
 export const ProfileForm = () => {
-    // Apenas a View (UI) para HU-7: Criar Perfil de Permissão
 
     return (
         <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">

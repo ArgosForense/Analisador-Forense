@@ -34,7 +34,6 @@ export const useLoginViewModel = () => {
     try {
       const data = await loginService.authenticate(email, password);
       console.log('Login bem-sucedido!', data);
-      // Lógica para armazenar token e redirecionar
     } catch (err) {
       setError(err.message || 'Erro ao tentar fazer login.');
     } finally {
