@@ -1,0 +1,18 @@
+Dependências de projeto (Node)
+
+/node_modules
+/package-lock.json
+
+Diretórios de build/saída de código
+
+/dist
+/build
+/.cache
+
+Arquivos de log e cache de depuração
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.orig
