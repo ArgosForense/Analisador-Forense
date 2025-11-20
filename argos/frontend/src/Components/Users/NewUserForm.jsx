@@ -81,7 +81,7 @@ export const NewUserForm = () => {
             <option value="">Selecione um perfil...</option>
             {profiles.map((profile) => (
               <option key={profile.id} value={profile.id}>
-                {profile.name}
+                {profile.nome}
               </option>
             ))}
           </select>
