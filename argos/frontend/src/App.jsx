@@ -9,48 +9,51 @@ import { NewUserForm } from './Components/Users/NewUserForm';
 import { ProfileForm } from './Components/Permissions/ProfileForm'; 
 import { MainLayout } from './Components/Layout/MainLayout';
 
-const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated } = useAuthStatus();
-    if (!isAuthenticated) {
+const ProtectedRoute = ({ isAuth, children }) => {
+    if (!isAuth) {
         return <Navigate to="/login" replace />;
     }
     return children;
 };
 
+const PublicRoute = ({ isAuth, children }) => {
+    if (isAuth) {
+        return <Navigate to="/logs" replace />;
+    }
+    return children;
+};
+
 function App() {
-  const { login } = useAuthStatus();
-  
+  // Extraímos também o 'logout' aqui, pois o App é quem manda no estado
+  const { login, logout, isAuthenticated } = useAuthStatus();
 
   return (
     <Router>
       <Routes>
         
-        {/* Rota de Login (Não Protegida) */}
-        <Route path="/login" element={<LoginScreen onLoginSuccess={login} />} />
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute isAuth={isAuthenticated}>
+              <LoginScreen onLoginSuccess={login} />
+            </PublicRoute>
+          } 
+        />
 
-        {/* Rota Protegida (Dashboard e Telas Internas) */}
-        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+        <Route element={<ProtectedRoute isAuth={isAuthenticated}><MainLayout onLogout={logout} /></ProtectedRoute>}>
+          {/* Note acima: Passamos onLogout={logout} para o MainLayout */}
           
-          {/* Rota Inicial (Redireciona para Logs) */}
           <Route index element={<Navigate to="/logs" replace />} />
-          
-          {/* HU-13: Logs - AGORA USANDO O NOVO DASHBOARD */}
           <Route path="/logs" element={<LogDashboardScreen />} />
-          
-          {/* Lista de Alertas */}
           <Route path="/alerts" element={<AlertsList />} />
-          
-          {/* HU-1, HU-7, HU-8: Gestão de Usuários e Perfis */}
           <Route path="/users" element={
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <NewUserForm /> {/* HU-1 (Incluir Usuário) e HU-8 (Atribuir Perfil) */}
-              <ProfileForm /> {/* HU-7 (Criar Perfil) */}
+              <NewUserForm /> 
+              <ProfileForm /> 
             </div>
           } />
-
         </Route>
         
-        {/* Rota para qualquer URL não encontrada */}
         <Route path="*" element={<Navigate to="/logs" />} />
         
       </Routes>

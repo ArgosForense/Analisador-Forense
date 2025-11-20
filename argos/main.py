@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # Importação necessária
 from app.core.database import create_db_and_tables
 from app.api.routes import auth_router, user_router, perfil_router, permissao_router, empresa_router, gestor_router
 
@@ -16,6 +17,21 @@ app = FastAPI(
     description="Sistema para gestão de usuários, perfis e permissões.",
     version="1.0.0"
 )
+
+# --- CONFIGURAÇÃO DO CORS (NOVO) ---
+origins = [
+    "http://localhost:5173", # URL do Vite (Front-end)
+    "http://localhost:3000",
+    "http://127.0.0.1:5173"
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# -----------------------------------
 
 # Registra a função de startup
 app.add_event_handler("startup", startup_event)

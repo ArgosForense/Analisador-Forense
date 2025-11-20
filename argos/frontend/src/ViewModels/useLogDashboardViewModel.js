@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-// Endereço da API e Intervalo de Atualização (Ajuste se necessário)
 const API_URL = 'http://localhost:5000';
-const LOG_UPDATE_INTERVAL = 30000; // 30 segundos
+const LOG_UPDATE_INTERVAL = 30000;
 
-/**
- * Determina a severidade do log com base em seus campos.
- * Adiciona 'ERROR' para logs mais críticos.
- * @param {object} log - Objeto de log retornado da API.
- * @returns {('ERROR'|'WARNING'|'INFO')}
- */
 const getSeverity = (log) => {
-  // Lógica de severidade
   if (log.categoria === 'suspeito' || log.evento === 'entrada_falhou' || log.mensagem?.toUpperCase().includes('SUSPEITO')) {
       return 'WARNING';
   }
@@ -21,25 +13,23 @@ const getSeverity = (log) => {
   return 'INFO';
 };
 
-/**
- * Hook ViewModel para gerenciar o estado e a lógica do Dashboard de Logs.
- * Exportado para ser consumido pelo LogDashboardScreen.
- */
 export const useLogDashboardViewModel = () => {
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
 
-  // Função centralizada para buscar logs da API
   const fetchLogs = useCallback(async (query) => {
     setIsLoading(true);
-    setError(null);
+    // Não limpamos o erro imediatamente aqui para evitar "flicker" se for um refresh automático
+    
     try {
       const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
+      
       if (!response.ok) {
-        throw new Error('Falha ao buscar dados da API. Status: ' + response.status);
+        throw new Error(`Erro ${response.status}: Serviço de logs indisponível.`);
       }
+      
       const data = await response.json();
 
       const formattedLogs = data.map(log => ({
@@ -52,16 +42,25 @@ export const useLogDashboardViewModel = () => {
       }));
 
       setLogs(formattedLogs);
+      setError(null); // Sucesso, limpa erros anteriores
+
     } catch (err) {
-      console.error("Erro ao buscar logs:", err);
-      setError('Não foi possível conectar ao serviço de logs. Verifique a API.');
-      setLogs([]);
+      console.error("Falha ao buscar logs:", err);
+      
+      // Tratamento específico para servidor desligado (Connection Refused)
+      if (err.message.includes('Failed to fetch')) {
+          setError('O servidor de Logs (Porta 5000) parece estar desligado. Inicie o backend Flask.');
+      } else {
+          setError(err.message || 'Erro desconhecido ao buscar logs.');
+      }
+      
+      // Mantém os logs antigos se houver, ou limpa se preferir
+      // setLogs([]); 
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Efeito para debounce na busca (ao digitar)
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       fetchLogs(searchTerm);
@@ -69,31 +68,22 @@ export const useLogDashboardViewModel = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchTerm, fetchLogs]);
 
-  // Efeito para atualização periódica (tempo real)
   useEffect(() => {
-    fetchLogs(searchTerm); // Busca inicial
     const intervalId = setInterval(() => {
-      fetchLogs(searchTerm);
+      if (!error) { // Só tenta atualizar automaticamente se não estiver com erro crítico de conexão
+          fetchLogs(searchTerm);
+      }
     }, LOG_UPDATE_INTERVAL);
     return () => clearInterval(intervalId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchTerm, fetchLogs, error]); // Adicionado error nas dependências
 
-
-  // Métrica 1: Cálculo de estatísticas agregadas (Memoizado para performance)
   const stats = useMemo(() => {
     const totalLogs = logs.length;
     const warningCount = logs.filter(log => log.severity === 'WARNING').length;
     const errorCount = logs.filter(log => log.severity === 'ERROR').length;
-    // Garante que 'N/A' não conte como um IP único
     const uniqueIPs = new Set(logs.map(log => log.ip).filter(ip => ip !== 'N/A')).size;
 
-    return {
-      totalLogs,
-      warningCount,
-      errorCount,
-      uniqueIPs,
-    };
+    return { totalLogs, warningCount, errorCount, uniqueIPs };
   }, [logs]);
 
   const topSources = useMemo(() => {

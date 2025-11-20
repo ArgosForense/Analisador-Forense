@@ -1,11 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuthStatus } from './useAuthStatus';
 
-const mockProfiles = [
-  { id: 1, name: 'Gestor de SOC' },
-  { id: 2, name: 'Analista de Segurança Nível 1' },
-  { id: 3, name: 'Especialista Forense' },
-];
-
+const API_BASE_URL = 'http://localhost:8000';
 
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,57 +9,105 @@ const isValidEmail = (email) => {
 };
 
 export const useNewUserViewModel = () => {
+  const { getAuthHeaders } = useAuthStatus();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     profileId: '',
   });
+  
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [profiles, setProfiles] = useState([]);
 
-  const profiles = mockProfiles;
+  useEffect(() => {
+    const fetchProfiles = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/perfis/`, {
+                method: 'GET',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setProfiles(data);
+            } else {
+                console.error("Erro ao buscar perfis:", response.statusText);
+                setProfiles([]); 
+            }
+        } catch (error) {
+            console.error("Falha na conexão ao buscar perfis:", error);
+            setProfiles([]);
+        }
+    };
+
+    fetchProfiles();
+  }, []); // Dependência vazia pois o getAuthHeaders é estável (vindo de outro hook) ou pode ser adicionado se o linter pedir.
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Limpa o erro específico do campo quando o usuário digita
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
-  }, [errors]);
+  }, [errors]); // 'errors' é dependência pois é lido dentro
 
-  const validate = () => {
+  // CORREÇÃO AQUI: Envolvemos o validate em useCallback
+  const validate = useCallback(() => {
     let newErrors = {};
     if (!formData.name) newErrors.name = 'Nome é obrigatório.';
+    
     if (!formData.email) {
       newErrors.email = 'E-mail é obrigatório.';
     } else if (!isValidEmail(formData.email)) {
       newErrors.email = 'Formato de e-mail inválido.';
     }
-    if (!formData.profileId) newErrors.profileId = 'Perfil é obrigatório (HU-8/RN02).';
-
-    if (formData.email === 'user@existente.com') {
-      newErrors.email = 'Usuário já existe no sistema.';
-    }
+    
+    if (!formData.profileId) newErrors.profileId = 'Perfil é obrigatório (HU-8).';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]); // Validate depende de formData
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    // Agora podemos chamar validate() com segurança
     if (!validate()) return;
 
     setIsLoading(true);
     try {
-      console.log('Dados a serem enviados:', formData);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert(`Usuário ${formData.name} adicionado com sucesso!`);
+      const payload = {
+          nome: formData.name,
+          email: formData.email,
+          perfil_id: parseInt(formData.profileId)
+      };
+
+      const response = await fetch(`${API_BASE_URL}/usuarios/`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Erro ao criar usuário.');
+      }
+
+      alert(`Usuário ${formData.name} adicionado com sucesso! Credenciais enviadas por e-mail.`);
+      
+      setFormData({ name: '', email: '', profileId: '' });
+
     } catch (apiError) {
-      setErrors(prev => ({ ...prev, general: 'Erro ao incluir usuário.' }));
+      setErrors(prev => ({ ...prev, general: apiError.message }));
     } finally {
       setIsLoading(false);
     }
-  }, [formData]);
+  // CORREÇÃO AQUI: Adicionamos 'validate' nas dependências
+  }, [formData, getAuthHeaders, validate]); 
 
   return {
     formData,

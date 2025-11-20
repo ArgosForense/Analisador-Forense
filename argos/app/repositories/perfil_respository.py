@@ -11,6 +11,12 @@ class PerfilRepository:
         """
         return db.query(Perfil).filter(Perfil.nome == nome).first()
 
+    def get_all(self, db: Session) -> List[Perfil]:
+        """
+        Busca todos os perfis cadastrados.
+        """
+        return db.query(Perfil).all()
+
     def create_with_permissions(self, db: Session, *, nome: str, permissoes: List[Permissao]) -> Perfil:
         """
         Cria um novo objeto Perfil no banco de dados, já associando as permissões.
@@ -26,4 +32,6 @@ class PerfilRepository:
         return db_perfil
 
 # Cria uma instância única do repositório para ser usada em toda a aplicação
-perfil_repository = PerfilRepository(Perfil)
+
+#perfil_repository = PerfilRepository(Perfil)
+perfil_repository = PerfilRepository()
