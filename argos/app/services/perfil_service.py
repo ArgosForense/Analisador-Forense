@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from typing import List
 from app.models.perfil_model import Perfil, Permissao
+from app.models.user_model import Usuario
 from app.schemas.perfil_schema import PerfilCreateSchema
 from app.repositories.perfil_respository import perfil_repository
 
@@ -25,6 +26,20 @@ class PerfilService:
         # db.commit()
         # db.refresh(db_obj)
         # return db_obj
+        
+    def deletar_perfil(self, db: Session, perfil_id: int):
+        # 1. Verifica se o perfil existe
+        perfil = perfil_repository.get(db, id=perfil_id)
+        if not perfil:
+            raise HTTPException(status_code=404, detail="Perfil não encontrado.")
+
+        # 2. Regra de Negócio: Não permitir deletar se houver usuários vinculados
+        usuarios_vinculados = db.query(Usuario).filter(Usuario.perfil_id == perfil_id).count()
+        if usuarios_vinculados > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail=f"Não é possível excluir. Existem {usuarios_vinculados} usuário(s) vinculados a este perfil."
+            )
         
         
         # ajuste 3. Cria o novo perfil usando o repositório (que encapsula a lógica do DB)

@@ -15,7 +15,7 @@ export const ProfileForm = () => {
     const [selectedPermissions, setSelectedPermissions] = useState([]);
 
     // Mapa de IDs de permissão (Exemplo: assumindo que no banco ID 1 = Logs, ID 2 = Alertas, etc)
-    // Você deve ajustar isso conforme o que está no seu banco de dados (Tabela 'permissoes')
+    // ajustar conforme o que está no banco de dados (Tabela 'permissoes')
     const PERMISSION_IDS = {
         LOGS: 1,
         ALERTS: 2,

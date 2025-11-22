@@ -8,5 +8,8 @@ class PerfilController:
 
     def listar_todos_perfis(self, db: Session):
         return perfil_service.listar_perfis(db)
+    
+    def delete_perfil(self, db: Session, perfil_id: int):
+        return perfil_service.deletar_perfil(db, perfil_id=perfil_id)
 
 perfil_controller = PerfilController()

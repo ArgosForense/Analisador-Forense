@@ -33,3 +33,15 @@ def criar_perfil(
     - **Acesso:** Apenas Gestores.
     """
     return perfil_controller.create_new_perfil(db=db, perfil_in=perfil_in)
+
+@router.delete("/{perfil_id}", status_code=204)
+def deletar_perfil(
+    *,
+    perfil_id: int,
+    db: Session = Depends(dependencies.obter_sessao)
+):
+    """
+    Deleta um perfil existente.
+    - Não permite deletar se houver usuários associados.
+    - **Acesso:** Apenas Gestores.
+    """
