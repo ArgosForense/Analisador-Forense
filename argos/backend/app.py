@@ -48,9 +48,11 @@ def search():
     else:
         query_body = {
             "query": {
-                "multi_match": {
-                    "query": query_term,
-                    "fields": ["mensagem", "nome", "ip_origem", "evento"]
+                "query_string": {
+                    "query": f"*{query_term}*",
+                    "fields": ["mensagem", "nome", "ip_origem", "evento", "categoria", "equipe"],
+                    "default_operator": "AND",
+                    "analyze_wildcard": True
                 }
             }
         }
@@ -62,7 +64,7 @@ def search():
         response = es.search(index="filebeat-*", body=query_body)
         return jsonify(process_hits(response['hits']['hits']))
     except Exception as e:
-        return jsonify({f"Erro durante a busca: {e}"}), 500
+        return jsonify({f"Erro durante a busca: {str(e)}"}), 500
 
 @app.route('/alertas', methods=['GET'])
 def get_alertas():
