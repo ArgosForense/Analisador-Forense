@@ -1,24 +1,16 @@
 import React, { useState } from 'react';
+import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline'; // Ícones
 
 export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) => {
-    
     const [nomePerfil, setNomePerfil] = useState('');
     const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-    const PERMISSION_IDS = {
-        LOGS: 1,
-        ALERTS: 2,
-        USERS: 3
-    };
+    const PERMISSION_IDS = { LOGS: 1, ALERTS: 2, USERS: 3 };
 
     const handleCheckboxChange = (permId) => {
-        setSelectedPermissions(prev => {
-            if (prev.includes(permId)) {
-                return prev.filter(id => id !== permId);
-            } else {
-                return [...prev, permId];
-            }
-        });
+        setSelectedPermissions(prev => 
+            prev.includes(permId) ? prev.filter(id => id !== permId) : [...prev, permId]
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -32,93 +24,115 @@ export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) 
     };
 
     return (
-        <div className="space-y-8">
-            {/* --- Formulário de Criação --- */}
-            <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
-                <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-                    Criar Perfil Com Permissão
-                </h3>
-                
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Perfil</label>
-                        <input 
-                            type="text" 
-                            value={nomePerfil}
-                            onChange={(e) => setNomePerfil(e.target.value)}
-                            placeholder="Ex: Analista Nível 3" 
-                            className="mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600" 
-                            required 
-                        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Coluna Esquerda: Formulário */}
+            <div className="space-y-5">
+                {error && (
+                    <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200">
+                        {error}
                     </div>
-                    
-                    <h4 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">
-                        Configurar Permissões
-                    </h4>
-                    
-                    <div className="space-y-2 p-4 border rounded-md dark:border-gray-700 mb-6">
-                        <div className="flex items-center">
+                )}
+
+                <form onSubmit={handleSubmit} className="flex flex-col h-full justify-between">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Novo Perfil</label>
                             <input 
-                                id="perm-logs" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                checked={selectedPermissions.includes(PERMISSION_IDS.LOGS)}
-                                onChange={() => handleCheckboxChange(PERMISSION_IDS.LOGS)}
+                                type="text" 
+                                value={nomePerfil}
+                                onChange={(e) => setNomePerfil(e.target.value)}
+                                placeholder="Ex: Auditor Externo" 
+                                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                required 
                             />
-                            <label htmlFor="perm-logs" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Logs em Tempo Real</label>
                         </div>
-                        <div className="flex items-center">
-                            <input 
-                                id="perm-alerts" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                checked={selectedPermissions.includes(PERMISSION_IDS.ALERTS)}
-                                onChange={() => handleCheckboxChange(PERMISSION_IDS.ALERTS)}
-                            />
-                            <label htmlFor="perm-alerts" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Alertas</label>
-                        </div>
-                        <div className="flex items-center">
-                            <input 
-                                id="perm-users" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
-                                onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
-                            />
-                            <label htmlFor="perm-users" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários </label>
+                        
+                        <div>
+                            <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permissões</span>
+                            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 space-y-2">
+                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
+                                    <input 
+                                        type="checkbox" 
+                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                        checked={selectedPermissions.includes(PERMISSION_IDS.LOGS)}
+                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.LOGS)}
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Visualizar Logs</span>
+                                </label>
+                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
+                                    <input 
+                                        type="checkbox" 
+                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                        checked={selectedPermissions.includes(PERMISSION_IDS.ALERTS)}
+                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.ALERTS)}
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Visualizar Alertas</span>
+                                </label>
+                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
+                                    <input 
+                                        type="checkbox" 
+                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                        checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
+                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <button 
                         type="submit" 
-                        className="w-full py-2 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                        className="mt-6 w-full inline-flex items-center justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Processando...' : 'Criar Perfil'}
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        {isLoading ? 'Criando...' : 'Criar Perfil'}
                     </button>
                 </form>
             </div>
 
-            {/* --- Lista de Perfis Existentes (Com Botão de Delete) --- */}
-            <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
-                <h4 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                    Perfis Existentes
+            {/* Coluna Direita: Lista de Perfis */}
+            <div className="flex flex-col h-full">
+                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
+                    Perfis Existentes ({profiles.length})
                 </h4>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                
+                <div 
+                    className="flex-1 overflow-y-auto pr-1 space-y-2 max-h-[300px]"
+                    style={{ scrollbarWidth: 'thin', scrollbarColor: '#CBD5E1 transparent' }} // Estilo sutil para Firefox
+                >
+                    {/* CSS para scrollbar Webkit (Chrome/Safari) */}
+                    <style>{`
+                        ::-webkit-scrollbar { width: 6px; }
+                        ::-webkit-scrollbar-track { background: transparent; }
+                        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+                        .dark ::-webkit-scrollbar-thumb { background-color: #4b5563; }
+                    `}</style>
+
                     {profiles.length > 0 ? (
                         profiles.map(profile => (
-                            <div key={profile.id} className="flex justify-between items-center p-3 border rounded-md dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                <span className="text-gray-800 dark:text-gray-200 font-medium">
-                                    {profile.nome}
-                                </span>
+                            <div key={profile.id} className="group flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors">
+                                <div className="flex items-center">
+                                    <div className="h-2 w-2 rounded-full bg-indigo-500 mr-3"></div>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {profile.nome}
+                                    </span>
+                                </div>
                                 <button
-                                    onClick={() => onDelete(profile.id)} // Chama função do pai
-                                    className="text-red-600 hover:text-red-800 text-sm font-semibold px-2 py-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                    onClick={() => onDelete(profile.id)}
+                                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
                                     title="Excluir Perfil"
                                     disabled={isLoading}
                                 >
-                                    Excluir
+                                    <TrashIcon className="h-5 w-5" />
                                 </button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-gray-500 text-sm text-center">Nenhum perfil cadastrado.</p>
+                        <div className="flex flex-col items-center justify-center h-32 text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+                            <p className="text-sm">Nenhum perfil encontrado.</p>
+                        </div>
                     )}
                 </div>
             </div>

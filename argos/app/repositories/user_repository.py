@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from typing import List
 from .base_repository import BaseRepository
 from app.models.user_model import Usuario
 from app.schemas.user_schema import UserCreateSchema
@@ -9,6 +10,10 @@ class UserRepository(BaseRepository[Usuario]):
     
     def get_email(self, db: Session, *, email: str) -> Usuario | None:
         return db.query(Usuario).filter(Usuario.email == email).first()
+
+    # Listar todos trazendo os dados do Perfil junto (Join) ---
+    def get_all_users(self, db: Session) -> List[Usuario]:
+        return db.query(Usuario).options(joinedload(Usuario.perfil)).all()
 
     def create_with_gestor(
         self, db: Session, *, obj_in: UserCreateSchema, gestor_id: int, hashed_password: str, institutional_email: str

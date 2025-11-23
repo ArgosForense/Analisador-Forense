@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
+from typing import List
 from app.api import dependencies
 from app.schemas.user_schema import UserCreateSchema, UserResponseSchema
 from app.controllers.user_controller import user_controller
@@ -13,6 +14,11 @@ router = APIRouter(
     tags=["Usuários"], 
     dependencies=[Depends(dependencies.nivel_acesso_gestor)]
 )
+
+@router.get("/", response_model=List[UserResponseSchema])
+def listar_usuarios(db: Session = Depends(dependencies.obter_sessao)):
+    """Lista todos os usuários e seus perfis."""
+    return user_controller.listar_usuarios(db=db)
 
 @router.post("/", response_model=UserResponseSchema, status_code=201)
 def criar_usuario(
@@ -31,6 +37,17 @@ def criar_usuario(
     - **Acesso:** Apenas Gestores.
     """
     return user_controller.criar_novo_usuario(db=db, user_in=user_in, current_gestor=current_gestor)
+
+@router.delete("/{user_id}", status_code=204)
+def deletar_usuario(
+    *,
+    user_id: int,
+    db: Session = Depends(dependencies.obter_sessao)
+):
+    """Deleta um usuário permanentemente."""
+    user_controller.deletar_usuario(db=db, user_id=user_id)
+    return Response(status_code=204)
+
 
 @router.post("/{user_id}/ativar", response_model=UserResponseSchema)
 def ativar_usuario(

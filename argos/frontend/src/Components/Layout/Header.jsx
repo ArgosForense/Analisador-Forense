@@ -15,13 +15,13 @@ export const Header = ({ userProfile, handleLogout }) => {
           {/* Links de Navegação */}
           <div className="flex items-center space-x-4">
             <Link to="/logs" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-              Monitoramento (HU-13)
+              Monitoramento {/*HU-13*/}
             </Link>
             <Link to="/alerts" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
               Alertas
             </Link>
             <Link to="/users" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-              Gestão de Usuários (HU-1/HU-8)
+              Gestão de Usuários {/*HU-1/HU-8*/}
             </Link>
           </div>
 

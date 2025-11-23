@@ -1,100 +1,34 @@
 import React from 'react';
-import { useNewUserViewModel } from '../../ViewModels/useNewUserViewModel';
 
-export const NewUserForm = ({ profiles }) => {
-  const {
-    formData,
-    errors,
-    isLoading,
-    handleChange,
-    handleSubmit,
-  } = useNewUserViewModel();
+export const NewUserForm = ({ profiles, formData, handleChange, handleSubmit, isLoading }) => {
+  // Removemos o hook interno. Tudo vem via props.
+  const inputClass = "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-all duration-200";
 
   return (
-    <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
-      <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-        Incluir Novo Usuário
-      </h3>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        
-        {errors.general && (
-            <p className="text-red-500 text-sm">{errors.general}</p>
-        )}
-
-        {/* Campo Nome */}
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-5">
+        {/* Nome */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Nome Completo
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            required
-            className={`mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white ${
-                errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            value={formData.name}
-            onChange={handleChange}
-            disabled={isLoading}
-          />
-          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome Completo</label>
+          <input type="text" name="name" required className={inputClass} value={formData.name} onChange={handleChange} disabled={isLoading} />
         </div>
-
-        {/* Campo E-mail */}
+        {/* E-mail */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            E-mail
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            required
-            className={`mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white ${
-                errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading}
-          />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mail Pessoal</label>
+          <input type="email" name="email" required className={inputClass} value={formData.email} onChange={handleChange} disabled={isLoading} />
         </div>
-
-        {/* Campo Perfil (HU-8) */}
+        {/* Perfil */}
         <div>
-          <label htmlFor="profileId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Perfil de Acesso 
-          </label>
-          <select
-            name="profileId"
-            id="profileId"
-            required
-            className={`mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white ${
-                errors.profileId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            value={formData.profileId}
-            onChange={handleChange}
-            disabled={isLoading}
-          >
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Perfil de Acesso</label>
+          <select name="profileId" required className={inputClass} value={formData.profileId} onChange={handleChange} disabled={isLoading}>
             <option value="">Selecione um perfil...</option>
-            {profiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.nome}
-              </option>
-            ))}
+            {profiles.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
-          {errors.profileId && <p className="text-red-500 text-xs mt-1">{errors.profileId}</p>}
         </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-        >
-          {isLoading ? 'Incluindo...' : 'Incluir Usuário'}
-        </button>
+        <div className="pt-2">
+            <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-all">
+            {isLoading ? 'Processando...' : 'Incluir Usuário'}
+            </button>
+        </div>
       </form>
-    </div>
   );
 };
