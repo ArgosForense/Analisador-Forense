@@ -81,7 +81,7 @@ export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) 
                                 checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
                                 onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
                             />
-                            <label htmlFor="perm-users" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários (HU-1)</label>
+                            <label htmlFor="perm-users" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários </label>
                         </div>
                     </div>
 

@@ -13,7 +13,7 @@ export const NewUserForm = ({ profiles }) => {
   return (
     <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
       <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-        HU-1: Incluir Novo Usuário
+        Incluir Novo Usuário
       </h3>
       <form onSubmit={handleSubmit} className="space-y-6">
         
@@ -64,7 +64,7 @@ export const NewUserForm = ({ profiles }) => {
         {/* Campo Perfil (HU-8) */}
         <div>
           <label htmlFor="profileId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Perfil de Acesso (HU-8)
+            Perfil de Acesso 
           </label>
           <select
             name="profileId"
