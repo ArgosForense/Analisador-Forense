@@ -22,7 +22,7 @@ services:
 
   # --- Serviço 1: API de Logs (Flask) ---
   api_logs:
-    build: ./api_logs  # Mudamos de ./backend para ./api_logs
+    build: ./backend/api_logs  # Mudamos de ./backend para ./api_logs
     container_name: api_logs
     ports:
       - "5000:5000"
@@ -35,12 +35,12 @@ services:
   # --- Serviço 2: API de Gestão (FastAPI) ---
   # Agora gerenciado pelo Docker!
   api_gestao:
-    build: ./api_gestao
+    build: ./backend/api_gestao
     container_name: api_gestao
     ports:
       - "8000:8000"
     volumes:
-      - ./api_gestao:/app # Hot-reload: alterações no código refletem na hora
+      - ./backend/api_gestao:/app
     networks:
       - elastic_network
     # Não precisa de depends_on elasticsearch pois usa SQLite, 

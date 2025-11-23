@@ -26,7 +26,7 @@ export const LogDashboardScreen = () => {
   return (
     <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-          Dashboard de Análise de Logs (HU-13)
+          Dashboard de Análise de Logs {/*(HU-13)*/}
       </h2>
       
       {/* Barra de Pesquisa */}
