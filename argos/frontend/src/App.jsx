@@ -35,6 +35,9 @@ function App() {
     <Router>
       <Routes>
         
+        {/* A rota raiz ("/") manda explicitamente para o Login --- */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Rota de Login: Só acessível se NÃO estiver logado */}
         <Route 
           path="/login" 
@@ -53,8 +56,8 @@ function App() {
             </ProtectedRoute>
         }>
           
-          {/* Redirecionamento padrão da raiz para logs */}
-          <Route index element={<Navigate to="/logs" replace />} />
+          {/* Removemos a rota 'index' daqui, pois a raiz "/" já é tratada acima */}
+          {/* <Route index element={<Navigate to="/logs" replace />} /> */}
           
           {/* Monitoramento (HU-13) */}
           <Route path="/logs" element={<LogDashboardScreen />} />
@@ -68,7 +71,7 @@ function App() {
         </Route>
         
         {/* Rota de Fallback (404) - Redireciona qualquer rota desconhecida */}
-        <Route path="*" element={<Navigate to="/logs" />} />
+        <Route path="*" element={<Navigate to="/login" />} />
 
       </Routes>
     </Router>

@@ -46,13 +46,16 @@ def search():
     if not query_term:
         query_body = {"query": {"match_all": {}}}
     else:
+        search_pattern = f"*{query_term}*" # para garantir busca parcial (ex: "1" encontra "192...")
+        
         query_body = {
             "query": {
                 "query_string": {
-                    "query": f"*{query_term}*",
-                    "fields": ["mensagem", "nome", "ip_origem", "evento", "categoria", "equipe"],
+                    "query": search_pattern,
+                    "fields": ["mensagem", "nome", "ip_origem", "evento", "categoria", "equipe", "cargo"],
                     "default_operator": "AND",
-                    "analyze_wildcard": True
+                    "analyze_wildcard": True,
+                    "allow_leading_wildcard": True # Permite * no começo
                 }
             }
         }
