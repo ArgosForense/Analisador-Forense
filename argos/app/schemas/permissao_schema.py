@@ -3,6 +3,9 @@ from pydantic import BaseModel
 class PermissaoCreateSchema(BaseModel):
     nome: str
 
+class PermissaoUpdateSchema(BaseModel):
+    nome: str
+
 class PermissaoResponseSchema(BaseModel):
     id: int
     nome: str
