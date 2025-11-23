@@ -36,7 +36,7 @@ export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) 
             {/* --- Formulário de Criação --- */}
             <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
                 <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-                    HU-7: Criar Perfil de Permissão
+                    Criar Perfil Com Permissão
                 </h3>
                 
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
