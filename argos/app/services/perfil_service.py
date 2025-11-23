@@ -26,6 +26,7 @@ class PerfilService:
         # db.commit()
         # db.refresh(db_obj)
         # return db_obj
+        return perfil_repository.create_with_permissions(db, nome=perfil_in.nome, permissoes=permissoes_encontradas)
         
     def deletar_perfil(self, db: Session, perfil_id: int):
         # 1. Verifica se o perfil existe
@@ -43,6 +44,6 @@ class PerfilService:
         
         
         # ajuste 3. Cria o novo perfil usando o repositório (que encapsula a lógica do DB)
-        return perfil_repository.create_with_permissions(db, nome=perfil_in.nome, permissoes=permissoes_encontradas)
+        return perfil_repository.remove(db, id=perfil_id)
 
 perfil_service = PerfilService()

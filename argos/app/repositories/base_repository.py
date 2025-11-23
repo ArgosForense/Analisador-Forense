@@ -27,8 +27,8 @@ class BaseRepository(Generic[ModelType]):
         return db_obj
 
     def remove(self, db: Session, *, id: int) -> ModelType:
-        # Implementação de remoção...
         obj = db.query(self.model).get(id)
-        db.delete(obj)
-        db.commit()
+        if obj:
+            db.delete(obj)
+            db.commit()
         return obj

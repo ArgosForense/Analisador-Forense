@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
-import { useAuthStatus } from '../../ViewModels/useAuthStatus';
 
-const API_BASE_URL = 'http://localhost:8000';
-
-export const ProfileForm = () => {
-    const { getAuthHeaders } = useAuthStatus();
-    const [nomePerfil, setNomePerfil] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) => {
     
-    // Estado para permissões selecionadas (IDs fictícios mapeados para lógica do front)
-    // No backend real, você precisaria buscar a lista de permissões disponíveis (`GET /permissoes`)
-    // Aqui vou assumir IDs fixos se eles já existirem no seu banco seedado, 
-    // ou você terá que criar as permissões antes.
+    const [nomePerfil, setNomePerfil] = useState('');
     const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-    // Mapa de IDs de permissão (Exemplo: assumindo que no banco ID 1 = Logs, ID 2 = Alertas, etc)
-    // ajustar conforme o que está no banco de dados (Tabela 'permissoes')
     const PERMISSION_IDS = {
         LOGS: 1,
         ALERTS: 2,
@@ -34,99 +23,105 @@ export const ProfileForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
-
-        try {
-            const payload = {
-                nome: nomePerfil,
-                permissoes_ids: selectedPermissions
-            };
-
-            const response = await fetch(`${API_BASE_URL}/perfis/`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.detail || 'Erro ao criar perfil');
-            }
-
+        const success = await onCreate(nomePerfil, selectedPermissions);
+        if (success) {
             alert('Perfil criado com sucesso!');
             setNomePerfil('');
             setSelectedPermissions([]);
-
-        } catch (error) {
-            alert(`Erro: ${error.message}`);
-        } finally {
-            setIsLoading(false);
         }
     };
 
     return (
-        <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
-            <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-                HU-7: Criar Perfil de Permissão
-            </h3>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Perfil</label>
-                    <input 
-                        type="text" 
-                        value={nomePerfil}
-                        onChange={(e) => setNomePerfil(e.target.value)}
-                        placeholder="Ex: Analista Nível 3" 
-                        className="mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600" 
-                        required 
-                    />
-                </div>
+        <div className="space-y-8">
+            {/* --- Formulário de Criação --- */}
+            <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
+                <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
+                    HU-7: Criar Perfil de Permissão
+                </h3>
                 
-                <h4 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">
-                    Configurar Permissões
-                </h4>
-                
-                <div className="space-y-2 p-4 border rounded-md dark:border-gray-700">
-                    <div className="flex items-center">
-                        <input 
-                            id="perm-logs" 
-                            type="checkbox" 
-                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                            checked={selectedPermissions.includes(PERMISSION_IDS.LOGS)}
-                            onChange={() => handleCheckboxChange(PERMISSION_IDS.LOGS)}
-                        />
-                        <label htmlFor="perm-logs" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Logs em Tempo Real (HU-13)</label>
-                    </div>
-                    <div className="flex items-center">
-                        <input 
-                            id="perm-alerts" 
-                            type="checkbox" 
-                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                            checked={selectedPermissions.includes(PERMISSION_IDS.ALERTS)}
-                            onChange={() => handleCheckboxChange(PERMISSION_IDS.ALERTS)}
-                        />
-                        <label htmlFor="perm-alerts" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Lista de Alertas</label>
-                    </div>
-                    <div className="flex items-center">
-                        <input 
-                            id="perm-users" 
-                            type="checkbox" 
-                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                            checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
-                            onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
-                        />
-                        <label htmlFor="perm-users" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Incluir/Editar Usuários (HU-1)</label>
-                    </div>
-                </div>
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-                <button 
-                    type="submit" 
-                    className="mt-6 w-full py-2 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-                    disabled={isLoading}
-                >
-                    {isLoading ? 'Criando...' : 'Criar Perfil'}
-                </button>
-            </form>
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Perfil</label>
+                        <input 
+                            type="text" 
+                            value={nomePerfil}
+                            onChange={(e) => setNomePerfil(e.target.value)}
+                            placeholder="Ex: Analista Nível 3" 
+                            className="mt-1 block w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600" 
+                            required 
+                        />
+                    </div>
+                    
+                    <h4 className="text-lg font-medium mb-3 text-gray-900 dark:text-white">
+                        Configurar Permissões
+                    </h4>
+                    
+                    <div className="space-y-2 p-4 border rounded-md dark:border-gray-700 mb-6">
+                        <div className="flex items-center">
+                            <input 
+                                id="perm-logs" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                checked={selectedPermissions.includes(PERMISSION_IDS.LOGS)}
+                                onChange={() => handleCheckboxChange(PERMISSION_IDS.LOGS)}
+                            />
+                            <label htmlFor="perm-logs" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Logs em Tempo Real</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input 
+                                id="perm-alerts" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                checked={selectedPermissions.includes(PERMISSION_IDS.ALERTS)}
+                                onChange={() => handleCheckboxChange(PERMISSION_IDS.ALERTS)}
+                            />
+                            <label htmlFor="perm-alerts" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Visualizar Alertas</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input 
+                                id="perm-users" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
+                                onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
+                            />
+                            <label htmlFor="perm-users" className="ml-3 text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários (HU-1)</label>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        className="w-full py-2 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Processando...' : 'Criar Perfil'}
+                    </button>
+                </form>
+            </div>
+
+            {/* --- Lista de Perfis Existentes (Com Botão de Delete) --- */}
+            <div className="p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg mx-auto">
+                <h4 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                    Perfis Existentes
+                </h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {profiles.length > 0 ? (
+                        profiles.map(profile => (
+                            <div key={profile.id} className="flex justify-between items-center p-3 border rounded-md dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span className="text-gray-800 dark:text-gray-200 font-medium">
+                                    {profile.nome}
+                                </span>
+                                <button
+                                    onClick={() => onDelete(profile.id)} // Chama função do pai
+                                    className="text-red-600 hover:text-red-800 text-sm font-semibold px-2 py-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                    title="Excluir Perfil"
+                                    disabled={isLoading}
+                                >
+                                    Excluir
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-500 text-sm text-center">Nenhum perfil cadastrado.</p>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

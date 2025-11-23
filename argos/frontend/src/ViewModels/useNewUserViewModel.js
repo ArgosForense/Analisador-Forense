@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuthStatus } from './useAuthStatus';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -19,31 +19,8 @@ export const useNewUserViewModel = () => {
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [profiles, setProfiles] = useState([]);
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/perfis/`, {
-                method: 'GET',
-                headers: getAuthHeaders()
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setProfiles(data);
-            } else {
-                console.error("Erro ao buscar perfis:", response.statusText);
-                setProfiles([]); 
-            }
-        } catch (error) {
-            console.error("Falha na conexão ao buscar perfis:", error);
-            setProfiles([]);
-        }
-    };
-
-    fetchProfiles();
-  }, []); // Dependência vazia pois o getAuthHeaders é estável (vindo de outro hook) ou pode ser adicionado se o linter pedir.
+ 
+  
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -55,7 +32,7 @@ export const useNewUserViewModel = () => {
     }
   }, [errors]); // 'errors' é dependência pois é lido dentro
 
-  // CORREÇÃO AQUI: Envolvemos o validate em useCallback
+  
   const validate = useCallback(() => {
     let newErrors = {};
     if (!formData.name) newErrors.name = 'Nome é obrigatório.';
@@ -66,16 +43,15 @@ export const useNewUserViewModel = () => {
       newErrors.email = 'Formato de e-mail inválido.';
     }
     
-    if (!formData.profileId) newErrors.profileId = 'Perfil é obrigatório (HU-8).';
+    if (!formData.profileId) newErrors.profileId = 'Perfil é obrigatório.'; //(HU-8)
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]); // Validate depende de formData
+  }, [formData]); 
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
-    // Agora podemos chamar validate() com segurança
     if (!validate()) return;
 
     setIsLoading(true);
@@ -112,7 +88,6 @@ export const useNewUserViewModel = () => {
   return {
     formData,
     errors,
-    profiles,
     isLoading,
     handleChange,
     handleSubmit,

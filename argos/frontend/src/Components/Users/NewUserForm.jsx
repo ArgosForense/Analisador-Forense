@@ -1,11 +1,10 @@
 import React from 'react';
 import { useNewUserViewModel } from '../../ViewModels/useNewUserViewModel';
 
-export const NewUserForm = () => {
+export const NewUserForm = ({ profiles }) => {
   const {
     formData,
     errors,
-    profiles,
     isLoading,
     handleChange,
     handleSubmit,

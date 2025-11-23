@@ -3,8 +3,9 @@ from typing import List
 
 from app.models.perfil_model import Perfil
 from app.models.permissao_model import Permissao
+from .base_repository import BaseRepository
 
-class PerfilRepository:
+class PerfilRepository(BaseRepository[Perfil]):
     def get_by_name(self, db: Session, *, nome: str) -> Perfil | None:
         """
         Busca um perfil pelo nome.
@@ -31,7 +32,5 @@ class PerfilRepository:
         
         return db_perfil
 
-# Cria uma instância única do repositório para ser usada em toda a aplicação
-
-#perfil_repository = PerfilRepository(Perfil)
-perfil_repository = PerfilRepository()
+# Inicializar passando o Modelo (Perfil) para o construtor do Pai (BaseRepository)
+perfil_repository = PerfilRepository(Perfil)

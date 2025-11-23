@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from typing import List
 from app.api import dependencies
@@ -45,3 +45,7 @@ def deletar_perfil(
     - Não permite deletar se houver usuários associados.
     - **Acesso:** Apenas Gestores.
     """
+    perfil_controller.delete_perfil(db=db, perfil_id=perfil_id)
+    return Response(status_code=204) # Retorna explicitamente uma resposta vazia
+
+    

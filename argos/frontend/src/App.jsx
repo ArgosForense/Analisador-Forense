@@ -2,13 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStatus } from './ViewModels/useAuthStatus';
 
+// Importação das Telas
 import { LoginScreen } from './Components/Auth/LoginScreen';
 import { LogDashboardScreen } from './Components/Dashboard/LogDashboardScreen'; 
 import { AlertsList } from './Components/Monitoring/AlertsList';
-import { NewUserForm } from './Components/Users/NewUserForm';
-import { ProfileForm } from './Components/Permissions/ProfileForm'; 
+
+import { UsersPage } from './Components/Users/UsersPage'; 
 import { MainLayout } from './Components/Layout/MainLayout';
 
+// Componente para proteger rotas privadas; Se não estiver autenticado, redireciona para o login
 const ProtectedRoute = ({ isAuth, children }) => {
     if (!isAuth) {
         return <Navigate to="/login" replace />;
@@ -23,14 +25,17 @@ const PublicRoute = ({ isAuth, children }) => {
     return children;
 };
 
+
+
 function App() {
-  // Extraímos também o 'logout' aqui, pois o App é quem manda no estado
+  // O App é o "dono" da verdade sobre o estado de autenticação
   const { login, logout, isAuthenticated } = useAuthStatus();
 
   return (
     <Router>
       <Routes>
         
+        {/* Rota de Login: Só acessível se NÃO estiver logado */}
         <Route 
           path="/login" 
           element={
@@ -40,22 +45,31 @@ function App() {
           } 
         />
 
-        <Route element={<ProtectedRoute isAuth={isAuthenticated}><MainLayout onLogout={logout} /></ProtectedRoute>}>
-          {/* Note acima: Passamos onLogout={logout} para o MainLayout */}
+        {/* Rotas Protegidas: Acessíveis apenas se estiver logado */}
+        <Route element={
+            <ProtectedRoute isAuth={isAuthenticated}>
+                {/* Passamos a função de logout para o layout (botão Sair) */}
+                <MainLayout onLogout={logout} />
+            </ProtectedRoute>
+        }>
           
+          {/* Redirecionamento padrão da raiz para logs */}
           <Route index element={<Navigate to="/logs" replace />} />
+          
+          {/* Monitoramento (HU-13) */}
           <Route path="/logs" element={<LogDashboardScreen />} />
+          
+          {/* Alertas */}
           <Route path="/alerts" element={<AlertsList />} />
-          <Route path="/users" element={
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <NewUserForm /> 
-              <ProfileForm /> 
-            </div>
-          } />
+          
+          {/* Gestão de Usuários (HU-1 e HU-7) - Agora centralizado na UsersPage */}
+          <Route path="/users" element={<UsersPage />} />
+
         </Route>
         
+        {/* Rota de Fallback (404) - Redireciona qualquer rota desconhecida */}
         <Route path="*" element={<Navigate to="/logs" />} />
-        
+
       </Routes>
     </Router>
   );
