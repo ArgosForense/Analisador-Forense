@@ -1,0 +1,22 @@
+[{
+  "_id": {
+    "$oid": "68b661f1f85f1b9248a90deb"
+  },
+  "nome": "Gustavo Horeste",
+  "email": "gustavo.horeste@argos.com",
+  "senha": "12345",
+  "gestor_id": "68b66028f85f1b9248a90dd8",
+  "perfil_id": "68b63631f85f1b9248a90d07",
+  "status": true
+},
+{
+  "_id": {
+    "$oid": "68b66257f85f1b9248a90ded"
+  },
+  "nome": "Maria Rangel",
+  "email": "maria.rangel@argos.com",
+  "senha": "121314",
+  "gestor_id": "68b66028f85f1b9248a90dd8",
+  "perfil_id": "68b65db7f85f1b9248a90dc0",
+  "status": true
+}]

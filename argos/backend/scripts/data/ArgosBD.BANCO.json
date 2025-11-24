@@ -1,0 +1,17 @@
+
+
+{
+  "script": [
+	"use(\"ArgosDB\");",
+	"// Criação das coleções principais",
+	"db.createCollection(\"EMPRESA\");",
+	"db.createCollection(\"GESTOR\");",
+	"db.createCollection(\"USUARIOS\");",
+	"db.createCollection(\"PERFIL\");",
+	"db.createCollection(\"PERMISSAO\");",
+	"db.createCollection(\"PERFIL_PERMISSAO\");",
+	"db.createCollection(\"LOG\");",
+	"",
+	"print(\"Coleções criadas com sucesso!\");"
+  ]
+}

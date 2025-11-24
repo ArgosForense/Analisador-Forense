@@ -5,8 +5,8 @@ export const useAuthStatus = () => {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    // Verifica se existe um token salvo ao iniciar
-    const storedToken = localStorage.getItem('access_token');
+    // MUDANÇA: Agora verificamos o sessionStorage (limpa ao fechar a aba)
+    const storedToken = sessionStorage.getItem('access_token');
     if (storedToken) {
       setToken(storedToken);
       setIsAuthenticated(true);
@@ -14,22 +14,25 @@ export const useAuthStatus = () => {
   }, []);
 
   const login = (accessToken) => {
-    localStorage.setItem('access_token', accessToken);
+    // MUDANÇA: Salva na sessão, não no disco
+    sessionStorage.setItem('access_token', accessToken);
     setToken(accessToken);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
+    // MUDANÇA: Remove da sessão
+    sessionStorage.removeItem('access_token');
     setToken(null);
     setIsAuthenticated(false);
   };
 
   // Função auxiliar para pegar o cabeçalho de autorização
   const getAuthHeaders = () => {
+    // MUDANÇA: Lê da sessão
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
     };
   };
 

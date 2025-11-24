@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline'; // Ícones
+import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 
-export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) => {
+// Adicione 'permissions' nas props recebidas
+export const ProfileForm = ({ profiles, permissions, onCreate, onDelete, isLoading, error }) => {
     const [nomePerfil, setNomePerfil] = useState('');
     const [selectedPermissions, setSelectedPermissions] = useState([]);
-
-    const PERMISSION_IDS = { LOGS: 1, ALERTS: 2, USERS: 3 };
 
     const handleCheckboxChange = (permId) => {
         setSelectedPermissions(prev => 
@@ -49,34 +48,25 @@ export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) 
                         
                         <div>
                             <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permissões</span>
-                            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 space-y-2">
-                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
-                                    <input 
-                                        type="checkbox" 
-                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                        checked={selectedPermissions.includes(PERMISSION_IDS.LOGS)}
-                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.LOGS)}
-                                    />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">Visualizar Logs</span>
-                                </label>
-                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
-                                    <input 
-                                        type="checkbox" 
-                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                        checked={selectedPermissions.includes(PERMISSION_IDS.ALERTS)}
-                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.ALERTS)}
-                                    />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">Visualizar Alertas</span>
-                                </label>
-                                <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
-                                    <input 
-                                        type="checkbox" 
-                                        className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                        checked={selectedPermissions.includes(PERMISSION_IDS.USERS)}
-                                        onChange={() => handleCheckboxChange(PERMISSION_IDS.USERS)}
-                                    />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">Gerenciar Usuários</span>
-                                </label>
+                            <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 space-y-2 max-h-40 overflow-y-auto">
+                                
+                                {/* RENDERIZAÇÃO DINÂMICA DAS PERMISSÕES */}
+                                {permissions && permissions.length > 0 ? (
+                                    permissions.map((perm) => (
+                                        <label key={perm.id} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                                checked={selectedPermissions.includes(perm.id)}
+                                                onChange={() => handleCheckboxChange(perm.id)}
+                                            />
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">{perm.nome}</span>
+                                        </label>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-gray-500">Nenhuma permissão cadastrada no sistema.</p>
+                                )}
+
                             </div>
                         </div>
                     </div>
@@ -98,18 +88,7 @@ export const ProfileForm = ({ profiles, onCreate, onDelete, isLoading, error }) 
                     Perfis Existentes ({profiles.length})
                 </h4>
                 
-                <div 
-                    className="flex-1 overflow-y-auto pr-1 space-y-2 max-h-[300px]"
-                    style={{ scrollbarWidth: 'thin', scrollbarColor: '#CBD5E1 transparent' }} // Estilo sutil para Firefox
-                >
-                    {/* CSS para scrollbar Webkit (Chrome/Safari) */}
-                    <style>{`
-                        ::-webkit-scrollbar { width: 6px; }
-                        ::-webkit-scrollbar-track { background: transparent; }
-                        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-                        .dark ::-webkit-scrollbar-thumb { background-color: #4b5563; }
-                    `}</style>
-
+                <div className="flex-1 overflow-y-auto pr-1 space-y-2 max-h-[300px]">
                     {profiles.length > 0 ? (
                         profiles.map(profile => (
                             <div key={profile.id} className="group flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors">

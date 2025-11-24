@@ -1,28 +1,26 @@
 import React from 'react';
 import { NewUserForm } from './NewUserForm';
-import { UserList } from './UserList';  
+import { UserList } from './UserList'; 
 import { ProfileForm } from '../Permissions/ProfileForm';
 import { useProfileViewModel } from '../../ViewModels/useProfileViewModel';
-import { useUserViewModel } from '../../ViewModels/useUserViewModel';  
+import { useUserViewModel } from '../../ViewModels/useUserViewModel'; 
 import { UserGroupIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 export const UsersPage = () => {
-    // ViewModel de Perfis
-    const { profiles, createProfile, deleteProfile, isLoading: loadingProfiles, error: errorProfiles } = useProfileViewModel();
+    // Extraímos profiles e permissions do hook de perfil
+    const { profiles, permissions, createProfile, deleteProfile, isLoading: loadingProfiles, error: errorProfiles } = useProfileViewModel();
     
-    // ViewModel de Usuários
     const { users, formData, handleChange, createUser, deleteUser, toggleStatus, isLoading: loadingUsers } = useUserViewModel();
 
     return (
         <div className="space-y-8 pb-10">
-            {/* Cabeçalho */}
             <div className="border-b border-gray-200 pb-5 dark:border-gray-700">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão de Acesso</h2>
                 <p className="mt-2 text-lg text-gray-500 dark:text-gray-400">Gerencie usuários, status e perfis.</p>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-                {/* Criação de Usuário */}
+                {/* Novo Usuário */}
                 <div className="xl:col-span-5">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
@@ -43,7 +41,7 @@ export const UsersPage = () => {
                     </div>
                 </div>
                 
-                {/* Gestão de Perfis */}
+                {/* Perfis */}
                 <div className="xl:col-span-7">
                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden h-full">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
@@ -55,6 +53,7 @@ export const UsersPage = () => {
                         <div className="p-6">
                             <ProfileForm 
                                 profiles={profiles} 
+                                permissions={permissions}
                                 onCreate={createProfile} 
                                 onDelete={deleteProfile} 
                                 isLoading={loadingProfiles} 
@@ -65,10 +64,11 @@ export const UsersPage = () => {
                 </div>
             </div>
 
-            {/* Lista de Usuários (NOVO) */}
             <div className="mt-8">
+                 
                 <UserList 
                     users={users} 
+                    profiles={profiles}
                     onDelete={deleteUser} 
                     onToggleStatus={toggleStatus} 
                 />

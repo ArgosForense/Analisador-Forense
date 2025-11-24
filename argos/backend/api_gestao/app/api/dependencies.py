@@ -8,7 +8,7 @@ from app.models.user_model import Usuario
 from app.models.gestor_model import Gestor
 
 # Token URL aponta para a rota de login
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login-form")
 
 # REMOVIDO: obter_sessao() -> Não é mais necessário com Beanie
 
@@ -36,13 +36,13 @@ async def verificar_token(token: str = Depends(oauth2_scheme)):
     # Converte string para ObjectId se necessário (Beanie aceita string no get)
     # Buscas assíncronas no Mongo
     if user_type == "gestor":
-        user = await Gestor.get(user_id)
+        user = await Gestor.get(PydanticObjectId(user_id))
         if not user:
             raise credentials_exception
         return user
         
     elif user_type == "usuario":
-        user = await Usuario.get(user_id)
+        user = await Usuario.get(PydanticObjectId(user_id))
         if not user:
             raise credentials_exception
         if not user.is_ativo():

@@ -15,6 +15,7 @@ from app.models.user_model import Usuario
 class UserService:
     
     async def listar_todos(self) -> List[Usuario]:
+        # Aqui já usamos fetch_links no repositório, então funciona
         return await user_repository.get_all_with_profile()
     
     async def criar_usuario(self, user_in: UserCreateSchema, gestor: Gestor):
@@ -25,17 +26,19 @@ class UserService:
         if await user_repository.get_by_email(email=institutional_email):
             raise HTTPException(status_code=400, detail="Já existe um usuário com este nome/email.")
 
-        # Criar instância do Usuario (Beanie)
         new_user = Usuario(
             nome=user_in.nome,
             email=institutional_email,
             senha=hashed_password,
-            perfil=user_in.perfil_id, # Link automático pelo ID
-            gestor=gestor.id,         # Link automático pelo ID
+            perfil=user_in.perfil_id,
+            gestor=gestor.id,
             status="ATIVO"
         )
         
         await new_user.create()
+        
+        # --- IMPORTANTE: Carrega o perfil para retornar no JSON de resposta ---
+        await new_user.fetch_all_links()
 
         enviar_email_credenciais(
             personal_email=user_in.email,
@@ -48,16 +51,28 @@ class UserService:
         user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+        
         user.ativar()
-        await user.save() # Salva mudança de estado
+        await user.save()
+        
+        # --- CORREÇÃO AQUI ---
+        # Força o Beanie a buscar os dados reais do Perfil (nome, id)
+        # para satisfazer o UserResponseSchema
+        await user.fetch_all_links()
+        
         return user
 
     async def desativar_usuario(self, user_id: PydanticObjectId):
         user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+        
         user.desativar()
         await user.save()
+        
+        # --- CORREÇÃO AQUI ---
+        await user.fetch_all_links()
+        
         return user
 
     async def deletar_usuario(self, user_id: PydanticObjectId):
