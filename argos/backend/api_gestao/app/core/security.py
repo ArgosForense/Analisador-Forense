@@ -1,7 +1,8 @@
-from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
+from typing import Any, Union
 from jose import jwt
-from .config import settings
+from passlib.context import CryptContext
+from app.core.config import settings
 import secrets
 import string
 
@@ -13,13 +14,20 @@ def verificar_senha(plain_password: str, hashed_password: str) -> bool:
 def gerar_hash_senha(password: str) -> str:
     return pwd_context.hash(password)
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
+# Padronizando para receber 'subject' (o ID do usuário)
+def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None, additional_claims: dict = None) -> str:
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    
+    # O 'sub' é o padrão JWT para o ID do usuário
+    to_encode = {"exp": expire, "sub": str(subject)}
+    
+    # Adiciona dados extras (como 'tipo': 'gestor')
+    if additional_claims:
+        to_encode.update(additional_claims)
+        
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -32,11 +40,6 @@ def gerar_email_institucional(name: str, domain: str = "empresa.com") -> str:
     return f"{formatted_name}@{domain}"
 
 def enviar_email_credenciais(personal_email: str, institutional_email: str, password: str):
-    # Em um projeto real, aqui você integraria com um serviço de e-mail (SendGrid, SES, etc.)
-    print("--- SIMULANDO ENVIO DE E-MAIL ---")
-    print(f"Para: {personal_email}")
-    print("Assunto: Suas credenciais de acesso ao sistema")
-    print(f"Olá, seu acesso foi criado com sucesso.")
-    print(f"Email institucional: {institutional_email}")
-    print(f"Senha temporária: {password}")
-    print("---------------------------------")
+    print(f"\n📨 [MOCK EMAIL] Para: {personal_email}")
+    print(f"   Assunto: Credenciais Argos")
+    print(f"   Login: {institutional_email} | Senha: {password}\n")

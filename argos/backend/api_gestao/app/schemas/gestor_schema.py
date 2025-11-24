@@ -1,15 +1,17 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from beanie import PydanticObjectId
+
 
 class GestorCreateSchema(BaseModel):
     nome: str
     email: EmailStr
     senha: str
-    empresa_id: int
+    empresa_id: PydanticObjectId = Field(alias="empresa_id") # deixo assim ou empresa_id: id ?????
 
 class GestorResponseSchema(BaseModel):
-    id: int
+    id: PydanticObjectId = Field(alias="_id")
     nome: str
     email: EmailStr
 
     class Config:
-        from_attributes = True
+        populate_by_name = True

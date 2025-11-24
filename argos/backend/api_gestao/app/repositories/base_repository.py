@@ -1,45 +1,51 @@
-from typing import Any, Generic, Type, TypeVar
-from sqlalchemy.orm import Session
-from app.core.database import Base
+from typing import Generic, TypeVar, List, Optional, Type, Union
+from beanie import Document, PydanticObjectId
+from pydantic import BaseModel
 
-ModelType = TypeVar("ModelType", bound=Base)
+# Definimos que o Modelo deve ser um Documento do Beanie
+ModelType = TypeVar("ModelType", bound=Document)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
-# CRUD genérico
-class BaseRepository(Generic[ModelType]):
+class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    def get(self, db: Session, id: Any) -> ModelType | None:
-        return db.query(self.model).filter(self.model.id == id).first()
+    # --- CRUD Genérico Assíncrono ---
 
-    def create(self, db: Session, *, obj_in) -> ModelType:
-        # Verifica se é um dicionário ou um modelo Pydantic
-        obj_in_data = obj_in.dict() if hasattr(obj_in, 'dict') else obj_in
-        db_obj = self.model(**obj_in_data)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+    async def get(self, id: PydanticObjectId) -> Optional[ModelType]:
+        # Busca por ID
+        return await self.model.get(id)
+
+    async def get_all(self) -> List[ModelType]:
+        # Busca todos e converte para lista
+        return await self.model.find_all().to_list()
+
+    async def create(self, obj_in: CreateSchemaType) -> ModelType:
+        # Cria a instância e salva no Mongo
+        # obj_in.model_dump() é o novo .dict() do Pydantic V2
+        db_obj = self.model(**obj_in.model_dump())
+        await db_obj.create()
         return db_obj
 
-    def update(self, db: Session, *, db_obj: ModelType, obj_in) -> ModelType:
-        # 1. Converte os dados de entrada (obj_in) em um dicionário
-        # exclude_unset=True é importante para não apagar campos que não foram enviados
-        update_data = obj_in.dict(exclude_unset=True) if hasattr(obj_in, 'dict') else obj_in
-
-        # 2. Atualiza os atributos do objeto do banco
-        for field in update_data:
-            if hasattr(db_obj, field):
-                setattr(db_obj, field, update_data[field]) # setattr atualizar obj do bd antes de fazer o commit.
-
-        # 3. Salva as alterações
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+    async def update(self, id: PydanticObjectId, obj_in: Union[UpdateSchemaType, dict]) -> Optional[ModelType]:
+        db_obj = await self.get(id)
+        if not db_obj:
+            return None
+        
+        # Prepara os dados de atualização
+        update_data = obj_in.model_dump(exclude_unset=True) if isinstance(obj_in, BaseModel) else obj_in
+        
+        # O Beanie usa o operador $set do Mongo automaticamente ao atualizar atributos
+        # Mas a forma mais robusta é usar update com dicionário
+        await db_obj.update({"$set": update_data})
+        
+        # Retorna o objeto atualizado
         return db_obj
 
-    def remove(self, db: Session, *, id: int) -> ModelType:
-        obj = db.query(self.model).get(id)
-        if obj:
-            db.delete(obj)
-            db.commit()
-        return obj
+    async def remove(self, id: PydanticObjectId) -> bool:
+        db_obj = await self.get(id)
+        if not db_obj:
+            return False
+        await db_obj.delete()
+        return True

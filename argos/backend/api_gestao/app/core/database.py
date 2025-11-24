@@ -1,27 +1,32 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase 
 from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
+from app.core.config import settings
 
-# (Configuração centralizada do banco de dados)
+# Importamos os modelos para registrá-los no Beanie
+from app.models.user_model import Usuario
+from app.models.gestor_model import Gestor
+from app.models.empresa_model import Empresa
+from app.models.perfil_model import Perfil
+from app.models.permissao_model import Permissao
 
-DATABASE_URL = "sqlite:///banco_final.db"
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-
-# MONGO_URL = "mongodb+srv://analistaforense:OaQKatRGsPNQS2rZ@cluster0.bqlrw4x.mongodb.net/ArgosDB?retryWrites=true&w=majority"
-# client = AsyncIOMotorClient(MONGO_URL)
-# db = client["ArgosDB"]
-# engine = create_engine(MONGO_URL, connect_args={"check_same_thread": False})
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-#Base = declarative_base()
-class Base(DeclarativeBase):
+async def init_db():
     """
-    Classe base para todos os modelos do SQLAlchemy.
-    As ferramentas de checagem de tipo entendem esta declaração.
+    Inicializa a conexão com o MongoDB e configura o Beanie (ODM).
     """
-    pass
-
-def create_db_and_tables():
-    Base.metadata.create_all(bind=engine)
+    # Cria o cliente do Motor (Driver Async)
+    client = AsyncIOMotorClient(settings.MONGODB_URL)
+    
+    # Seleciona o banco de dados
+    database = client.argos_db
+    
+    # Inicializa o Beanie com os modelos de documentos
+    await init_beanie(
+        database=database,
+        document_models=[
+            Usuario,
+            Gestor,
+            Empresa,
+            Perfil,
+            Permissao
+        ]
+    )

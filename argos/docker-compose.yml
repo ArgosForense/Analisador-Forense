@@ -31,6 +31,19 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+
+
+  # --- NOVO SERVIÇO: MongoDB Local ---
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"  # Permite acessar o banco via Compass/Script local
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - elastic_network
   
   # --- Serviço 2: API de Gestão (FastAPI) ---
   # Agora gerenciado pelo Docker!
@@ -43,8 +56,15 @@ services:
       - ./backend/api_gestao:/app
     networks:
       - elastic_network
-    # Não precisa de depends_on elasticsearch pois usa SQLite, 
-    # mas se no futuro usar Mongo, adicione aqui.
+    # Não precisa de depends_on elasticsearch pois usa SQLite, mas se no futuro usar Mongo, adicione aqui.
+    # O futuro chegou!!
+    depends_on:
+      - mongo  # Agora espera o Mongo iniciar
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/argos_db
+      - SECRET_KEY=sua_chave_super_secreta_aqui
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
 
   gerador_logs:
     build: ./gerador
@@ -85,6 +105,7 @@ services:
 volumes:
   elastic_data:
   logs_volume:
+  mongo_data:
 
 networks:
   elastic_network:

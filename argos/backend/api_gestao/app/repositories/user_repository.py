@@ -1,39 +1,17 @@
-from sqlalchemy.orm import Session, joinedload
-from typing import List
+from typing import Optional
+from beanie import PydanticObjectId
 from .base_repository import BaseRepository
 from app.models.user_model import Usuario
-from app.schemas.user_schema import UserCreateSchema
+from app.schemas.user_schema import UserCreateSchema, UserUpdateSchema
 
-class UserRepository(BaseRepository[Usuario]):
-    def get(self, db: Session, *, user_id: int) -> Usuario | None:
-        return db.query(Usuario).filter(Usuario.id == user_id).first()
+class UserRepository(BaseRepository[Usuario, UserCreateSchema, UserUpdateSchema]):
     
-    def get_email(self, db: Session, *, email: str) -> Usuario | None:
-        return db.query(Usuario).filter(Usuario.email == email).first()
+    async def get_by_email(self, email: str) -> Optional[Usuario]:
+        # find_one retorna o primeiro match
+        return await self.model.find_one(Usuario.email == email)
 
-    # Listar todos trazendo os dados do Perfil junto (Join) ---
-    def get_all_users(self, db: Session) -> List[Usuario]:
-        return db.query(Usuario).options(joinedload(Usuario.perfil)).all()
-
-    def create_with_gestor(
-        self, db: Session, *, obj_in: UserCreateSchema, gestor_id: int, hashed_password: str, institutional_email: str
-    ) -> Usuario:
-        db_obj = Usuario(
-            nome=obj_in.nome,
-            email=institutional_email,
-            senha=hashed_password,
-            perfil_id=obj_in.perfil_id,
-            gestor_id=gestor_id
-        )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
-    
-    def save(self, db: Session, *, user: Usuario) -> Usuario:
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        return user
+    async def get_all_with_profile(self):
+        # fetch_links=True faz o "JOIN" automático trazendo os dados do Perfil linkado
+        return await self.model.find_all().find(fetch_links=True).to_list()
 
 user_repository = UserRepository(Usuario)

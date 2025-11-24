@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from typing import List
+from beanie import PydanticObjectId
 from app.schemas.user_schema import UserCreateSchema
 from app.repositories.user_repository import user_repository
 from app.core.security import (
@@ -14,20 +14,28 @@ from app.models.user_model import Usuario
 
 class UserService:
     
-    def listar_todos(self, db: Session) -> List[Usuario]:
-        return user_repository.get_all_users(db)
+    async def listar_todos(self) -> List[Usuario]:
+        return await user_repository.get_all_with_profile()
     
-    def criar_usuario(self, db: Session, *, user_in: UserCreateSchema, gestor: Gestor):
+    async def criar_usuario(self, user_in: UserCreateSchema, gestor: Gestor):
         random_password = gerar_senha_aleatoria()
         hashed_password = gerar_hash_senha(random_password)
         institutional_email = gerar_email_institucional(user_in.nome)
 
-        if user_repository.get_email(db, email=institutional_email):
-            raise HTTPException(status_code=400, detail="Já existe um usuário com este nome.")
+        if await user_repository.get_by_email(email=institutional_email):
+            raise HTTPException(status_code=400, detail="Já existe um usuário com este nome/email.")
 
-        new_user = user_repository.create_with_gestor(
-            db, obj_in=user_in, gestor_id=gestor.id, hashed_password=hashed_password, institutional_email=institutional_email
+        # Criar instância do Usuario (Beanie)
+        new_user = Usuario(
+            nome=user_in.nome,
+            email=institutional_email,
+            senha=hashed_password,
+            perfil=user_in.perfil_id, # Link automático pelo ID
+            gestor=gestor.id,         # Link automático pelo ID
+            status="ATIVO"
         )
+        
+        await new_user.create()
 
         enviar_email_credenciais(
             personal_email=user_in.email,
@@ -36,24 +44,27 @@ class UserService:
         )
         return new_user
 
-    def ativar_usuario(self, db: Session, *, user_id: int):
-        user = user_repository.get(db, user_id=user_id)
+    async def ativar_usuario(self, user_id: PydanticObjectId):
+        user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
         user.ativar()
-        return user_repository.save(db, user=user)
+        await user.save() # Salva mudança de estado
+        return user
 
-    def desativar_usuario(self, db: Session, *, user_id: int):
-        user = user_repository.get(db, user_id=user_id)
+    async def desativar_usuario(self, user_id: PydanticObjectId):
+        user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
         user.desativar()
-        return user_repository.save(db, user=user)
+        await user.save()
+        return user
 
-    def deletar_usuario(self, db: Session, *, user_id: int):
-        user = user_repository.get(db, user_id=user_id)
+    async def deletar_usuario(self, user_id: PydanticObjectId):
+        user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-        return user_repository.remove(db, id=user_id)
+        await user.delete()
+        return True
     
 user_service = UserService()

@@ -1,18 +1,21 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-from app.core.database import Base
+from typing import Optional, Annotated
+from beanie import Document, Link, Indexed
+from pydantic import EmailStr, Field
+from datetime import datetime
+from .perfil_model import Perfil
+from .gestor_model import Gestor
 
-class Usuario(Base):
-    __tablename__ = "usuarios"
-    id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String)
-    email = Column(String, nullable=False, unique=True, index=True)
-    senha = Column(String, nullable=False)
-    status = Column(String, default="ATIVO")
-    perfil_id = Column(Integer, ForeignKey("perfis.id"))
-    gestor_id = Column(Integer, ForeignKey("gestores.id"))
+class Usuario(Document):
+    nome: str
+    # Indexed vem do beanie, unique=True cria índice único no Mongo
+    email: Annotated[EmailStr, Indexed(unique=True)]
+    senha: str
+    status: str = "ATIVO"
+    created_at: datetime = Field(default_factory=datetime.now)
     
-    perfil = relationship("Perfil")
+    # Link armazena a referência (ObjectId) para outros documentos
+    perfil: Optional[Link[Perfil]] = None
+    gestor: Optional[Link[Gestor]] = None 
 
     def desativar(self):
         if self.status == "DESATIVADO":
@@ -26,3 +29,6 @@ class Usuario(Base):
 
     def is_ativo(self) -> bool:
         return self.status == "ATIVO"
+
+    class Settings:
+        name = "usuarios"

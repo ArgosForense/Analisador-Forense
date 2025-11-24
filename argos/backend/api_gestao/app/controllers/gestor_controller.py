@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session
-from app.services.gestor_service import gestor_service
+from app.services.auth_service import auth_service
 from app.schemas.gestor_schema import GestorCreateSchema
 
 class GestorController:
-    def create_new_account(self, db: Session, *, gestor_in: GestorCreateSchema):
-        return gestor_service.criar_conta_gestor(db=db, gestor_in=gestor_in)
+    async def create_new_account(self, gestor_in: GestorCreateSchema):
+        # Nota: Usamos o auth_service aqui pois ele centraliza a criação segura
+        return await auth_service.criar_conta_gestor(gestor_in=gestor_in)
 
 gestor_controller = GestorController()

@@ -1,21 +1,31 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # Importação necessária
-from app.core.database import create_db_and_tables
+from app.core.database import init_db
+from fastapi.middleware.cors import CORSMiddleware  
 from app.api.routes import auth_router, user_router, perfil_router, permissao_router, empresa_router, gestor_router
 
 
-# Função que será executada na inicialização da aplicação
-def startup_event():
-    """
-    Cria as tabelas no banco de dados, caso elas não existam.
-    """
-    create_db_and_tables()
+# Garante que o banco conecte antes do servidor começar a receber requisições.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- INICIO
+    # Inicia conexão com MongoDB ao ligar o servidor
+    print("🚀 Iniciando conexão com MongoDB...")
+    await init_db()
+    print("MongoDB Conectado e Models Inicializados!")
+    
+    yield
+    # --- FIM (Shutdown) ---
+    # Código para rodar ao desligar (opcional)
+    print("🛑 Desligando aplicação...")
+    
 
 # Cria a instância principal da aplicação FastAPI
 app = FastAPI(
     title="Analisador Forense API",
     description="Sistema para gestão de usuários, perfis e permissões.",
-    version="1.0.0"
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # --- CONFIGURAÇÃO DO CORS (NOVO) ---
@@ -33,10 +43,8 @@ app.add_middleware(
 )
 # -----------------------------------
 
-# Registra a função de startup
-app.add_event_handler("startup", startup_event)
 
-# Inclui todos os roteadores na aplicação
+# ROTAS
 app.include_router(auth_router.router)
 app.include_router(user_router.router)
 app.include_router(perfil_router.router)
@@ -49,6 +57,6 @@ def read_root():
     """
     Endpoint raiz para verificar se a API está funcionando.
     """
-    return {"status": "API is running"}
+    return {"status": "API is running", "database": "MongoDB"}
 
 # para rodar o código, executar no terminal: uvicorn main:app --reload

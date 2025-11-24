@@ -1,10 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from app.core.database import Base
+# argos/api_gestao/app/models/gestor_model.py
+from typing import Annotated
+from beanie import Document, Link, Indexed
+from pydantic import EmailStr
+from .empresa_model import Empresa
 
-class Gestor(Base):
-    __tablename__ = "gestores"
-    id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String, nullable=False)
-    email = Column(String, nullable=False, unique=True, index=True)
-    senha = Column(String, nullable=False)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"))
+class Gestor(Document):
+    nome: str
+    email: Annotated[EmailStr, Indexed(unique=True)]
+    senha: str
+    empresa: Link[Empresa]
+
+    class Settings:
+        name = "gestores"

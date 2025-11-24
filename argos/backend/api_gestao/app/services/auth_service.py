@@ -1,103 +1,127 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-
-from app.core.security import create_access_token, verificar_senha, gerar_hash_senha
+from typing import Any
+from fastapi import HTTPException, status
+from app.core.security import verificar_senha, create_access_token, gerar_hash_senha
 from app.core.config import settings
-from app.models.gestor_model import Gestor
 from app.models.user_model import Usuario
-from app.models.empresa_model import Empresa
-from app.schemas.gestor_schema import GestorCreateSchema
-from app.schemas.empresa_schema import EmpresaCreateSchema
-from app.schemas.auth_schema import LoginSchema
-
-# Importando os repositórios para desacoplar o acesso ao banco
+from app.models.gestor_model import Gestor
+from app.repositories.user_repository import user_repository
 from app.repositories.gestor_repository import gestor_repository
 from app.repositories.empresa_repository import empresa_repository
-from app.repositories.user_repository import user_repository
+from app.schemas.auth_schema import LoginSchema
+from app.schemas.gestor_schema import GestorCreateSchema
+from app.schemas.empresa_schema import EmpresaCreateSchema
 
 class AuthService:
 
-    def _autenticar_gestor(self, db: Session, email: str, senha: str) -> Gestor | None:
-        """Busca e autentica um gestor."""
-        gestor = gestor_repository.get_email(db, email=email)
-        if not gestor or not verificar_senha(senha, gestor.senha):
+    async def _autenticar_gestor(self, email: str, senha: str) -> Gestor | None:
+        print(f"🔍 [DEBUG] Tentando autenticar Gestor: {email}")
+        gestor = await gestor_repository.get_by_email(email=email)
+        
+        if not gestor:
+            print(f"❌ [DEBUG] Gestor não encontrado no banco.")
+            return None
+            
+        senha_valida = verificar_senha(senha, gestor.senha)
+        print(f"🔑 [DEBUG] Gestor encontrado (ID: {gestor.id}). Senha válida? {senha_valida}")
+        
+        if not senha_valida:
             return None
         return gestor
 
-    def _autenticar_usuario(self, db: Session, email: str, senha: str) -> Usuario | None:
-        """Busca e autentica um usuário."""
-        usuario = user_repository.get_email(db, email=email)
-        if not usuario or not verificar_senha(senha, usuario.senha):
+    async def _autenticar_usuario(self, email: str, senha: str) -> Usuario | None:
+        print(f"🔍 [DEBUG] Tentando autenticar Usuário: {email}")
+        usuario = await user_repository.get_by_email(email=email)
+        
+        if not usuario:
+            return None
+            
+        if not verificar_senha(senha, usuario.senha):
+            print(f"❌ [DEBUG] Senha incorreta para usuário {email}")
             return None
         return usuario
 
-    ###def login_for_access_token(self, db: Session, form_data: OAuth2PasswordRequestForm):
-    def login_for_access_token(self, db: Session, *, login_data: LoginSchema):
-        """
-        Lida com o processo de login para Gestor ou Usuário, gerando access e refresh tokens.
-        """
-        ###gestor = self._autenticar_gestor(db, email=form_data.username, senha=form_data.password)
-        gestor = self._autenticar_gestor(db, email=login_data.email, senha=login_data.senha)
+    async def login_for_access_token(self, *, login_data: LoginSchema):
+        gestor = await self._autenticar_gestor(email=login_data.email, senha=login_data.senha)
+        
         if gestor:
-            data = {"sub": str(gestor.id), "tipo": "gestor"}
+            print("✅ [DEBUG] Login de Gestor OK!")
             access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
             refresh_token_expires = timedelta(days=7)
             
-            ### access_token = create_access_token(str(gestor.id), "gestor", expires_delta=access_token_expires)
-            ### refresh_token = create_access_token(str(gestor.id), "gestor", expires_delta=refresh_token_expires)
-            access_token = create_access_token(data=data, expires_delta=access_token_expires)
-            refresh_token = create_access_token(data=data, expires_delta=refresh_token_expires)
+            # CORREÇÃO AQUI: Usando 'subject' e 'additional_claims'
+            access_token = create_access_token(
+                subject=gestor.id, 
+                expires_delta=access_token_expires,
+                additional_claims={"tipo": "gestor"}
+            )
+            refresh_token = create_access_token(
+                subject=gestor.id, 
+                expires_delta=refresh_token_expires,
+                additional_claims={"tipo": "gestor"}
+            )
             
             return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "tipo": "gestor"}
 
-        ###usuario = self._autenticar_usuario(db, email=form_data.username, senha=form_data.password)
-        usuario = self._autenticar_usuario(db, email=login_data.email, senha=login_data.senha)
+        usuario = await self._autenticar_usuario(email=login_data.email, senha=login_data.senha)
+        
         if usuario:
             if not usuario.is_ativo():
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário desativado.")
            
-            data = {"sub": str(usuario.id), "tipo": "usuario"}
+            print("✅ [DEBUG] Login de Usuário OK!")
             access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
             refresh_token_expires = timedelta(days=7)
             
-            access_token = create_access_token(data=data, expires_delta=access_token_expires)
-            refresh_token = create_access_token(data=data, expires_delta=refresh_token_expires)
+            # CORREÇÃO AQUI TAMBÉM
+            access_token = create_access_token(
+                subject=usuario.id, 
+                expires_delta=access_token_expires,
+                additional_claims={"tipo": "usuario"}
+            )
+            refresh_token = create_access_token(
+                subject=usuario.id, 
+                expires_delta=refresh_token_expires,
+                additional_claims={"tipo": "usuario"}
+            )
             
             return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "tipo": "usuario"}
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="E-mail ou senha incorretos.")
 
     def refresh_token(self, usuario_logado: Gestor | Usuario):
-        """
-        Gera um novo access_token a partir de um token de atualização válido.
-        """
         user_id = usuario_logado.id
         user_type = "gestor" if isinstance(usuario_logado, Gestor) else "usuario"
         
-        #access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        #new_access_token = create_access_token(data={"sub": str(user_id), "tipo": user_type})
-        data = {"sub": str(user_id), "tipo": user_type}
-        new_access_token = create_access_token(data=data)
+        # CORREÇÃO AQUI TAMBÉM
+        new_access_token = create_access_token(
+            subject=user_id,
+            additional_claims={"tipo": user_type}
+        )
         
         return {"access_token": new_access_token, "token_type": "bearer", "tipo": user_type}
 
-    def criar_conta_gestor(self, db: Session, gestor_in: GestorCreateSchema):
-        """Cria uma nova conta de gestor."""
-        gestor_existente = gestor_repository.get_email(db, email=gestor_in.email)
+    async def criar_conta_gestor(self, gestor_in: GestorCreateSchema):
+        gestor_existente = await gestor_repository.get_by_email(email=gestor_in.email)
         if gestor_existente:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Já existe um gestor com este e-mail.")
             
         hashed_password = gerar_hash_senha(gestor_in.senha)
-        return gestor_repository.create(db, gestor_in=gestor_in, hashed_password=hashed_password)
+        print(f"🛠️ [DEBUG] Criando gestor {gestor_in.email}. Hash gerado: {hashed_password[:10]}...")
+        
+        novo_gestor = Gestor(
+            nome=gestor_in.nome,
+            email=gestor_in.email,
+            senha=hashed_password,
+            empresa=gestor_in.empresa_id
+        )
+        await novo_gestor.create()
+        return novo_gestor
 
-    def register_empresa(self, db: Session, empresa_in: EmpresaCreateSchema):
-        """Registra uma nova empresa."""
-        empresa_existente = empresa_repository.get_cnpj(db, cnpj=empresa_in.cnpj)
+    async def register_empresa(self, empresa_in: EmpresaCreateSchema):
+        empresa_existente = await empresa_repository.get_by_cnpj(cnpj=empresa_in.cnpj)
         if empresa_existente:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Já existe uma empresa com este CNPJ.")
-            
-        return empresa_repository.create(db, empresa_in=empresa_in)
+        return await empresa_repository.create(obj_in=empresa_in)
 
 auth_service = AuthService()

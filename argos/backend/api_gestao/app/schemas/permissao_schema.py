@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from beanie import PydanticObjectId
+from pydantic import Field
 
 class PermissaoCreateSchema(BaseModel):
     nome: str
@@ -7,8 +9,9 @@ class PermissaoUpdateSchema(BaseModel):
     nome: str
 
 class PermissaoResponseSchema(BaseModel):
-    id: int
+    id: PydanticObjectId = Field(alias="_id")
     nome: str
 
     class Config:
-        from_attributes = True
+        populate_by_name = True
+        

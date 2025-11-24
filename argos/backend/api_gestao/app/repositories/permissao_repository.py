@@ -1,17 +1,11 @@
-from sqlalchemy.orm import Session
-from typing import List
-from app.models.permissao_model import Permissao
+from typing import Optional
 from .base_repository import BaseRepository
+from app.models.permissao_model import Permissao
+from app.schemas.permissao_schema import PermissaoCreateSchema, PermissaoUpdateSchema
 
-class PermissaoRepository(BaseRepository[Permissao]):
-    def get_by_name(self, db: Session, *, name: str) -> Permissao | None:
-        return db.query(Permissao).filter(Permissao.nome == name).first()
+class PermissaoRepository(BaseRepository[Permissao, PermissaoCreateSchema, PermissaoUpdateSchema]):
     
-    # método para a listagem
-    def get_all(self, db: Session) -> List[Permissao]:
-        return db.query(Permissao).all()
-    
-    def get_by_ids(self, db: Session, *, ids: list[int]) -> list[Permissao]:
-        return db.query(self.model).filter(self.model.id.in_(ids)).all()
+    async def get_by_name(self, nome: str) -> Optional[Permissao]:
+        return await self.model.find_one(Permissao.nome == nome)
 
 permissao_repository = PermissaoRepository(Permissao)

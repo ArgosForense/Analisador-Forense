@@ -1,13 +1,14 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from beanie import PydanticObjectId
 
 class EmpresaCreateSchema(BaseModel):
     nome: str
     cnpj: str
 
 class EmpresaResponseSchema(BaseModel):
-    id: int
+    id: PydanticObjectId = Field(alias="_id")
     nome: str
     cnpj: str
 
     class Config:
-        from_attributes = True
+        populate_by_name = True

@@ -1,49 +1,48 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from typing import List
-from app.models.perfil_model import Perfil, Permissao
+from beanie import PydanticObjectId
+from app.models.perfil_model import Perfil
+from app.models.permissao_model import Permissao
 from app.models.user_model import Usuario
 from app.schemas.perfil_schema import PerfilCreateSchema
 from app.repositories.perfil_respository import perfil_repository
 
 class PerfilService:
     
-    def listar_perfis(self, db: Session) -> List[Perfil]:
-        """Retorna a lista de todos os perfis."""
-        return perfil_repository.get_all(db)
+    async def listar_perfis(self) -> List[Perfil]:
+        return await perfil_repository.get_all()
     
-    def criar_perfil(self, db: Session, *, perfil_in: PerfilCreateSchema) -> Perfil:
-        # 1. Busca os objetos de Permissao com base nos IDs recebidos
-        permissoes_encontradas = db.query(Permissao).filter(Permissao.id.in_(perfil_in.permissoes_ids)).all()
+    async def criar_perfil(self, perfil_in: PerfilCreateSchema) -> Perfil:
+        # Busca as permissões pelos IDs recebidos
+        # O operador $in busca documentos onde o _id está na lista fornecida
+        permissoes_encontradas = await Permissao.find(
+            {"_id": {"$in": perfil_in.permissoes_ids}}
+        ).to_list()
         
-        # 2. Validação de negócio: verificar se todos os IDs fornecidos existem
         if len(permissoes_encontradas) != len(perfil_in.permissoes_ids):
             raise HTTPException(status_code=400, detail="Uma ou mais permissões não foram encontradas.")
             
-        # 3. Cria o novo perfil
-        # db_obj = Perfil(nome=perfil_in.nome, permissoes=permissoes_encontradas)
-        # db.add(db_obj)
-        # db.commit()
-        # db.refresh(db_obj)
-        # return db_obj
-        return perfil_repository.create_with_permissions(db, nome=perfil_in.nome, permissoes=permissoes_encontradas)
+        # Cria o perfil linkando os objetos de permissão encontrados
+        perfil = Perfil(nome=perfil_in.nome, permissoes=permissoes_encontradas)
+        await perfil.create()
+        return perfil
         
-    def deletar_perfil(self, db: Session, perfil_id: int):
-        # 1. Verifica se o perfil existe
-        perfil = perfil_repository.get(db, id=perfil_id)
+    async def deletar_perfil(self, perfil_id: PydanticObjectId):
+        perfil = await perfil_repository.get(perfil_id)
         if not perfil:
             raise HTTPException(status_code=404, detail="Perfil não encontrado.")
 
-        # 2. Regra de Negócio: Não permitir deletar se houver usuários vinculados
-        usuarios_vinculados = db.query(Usuario).filter(Usuario.perfil_id == perfil_id).count()
+        # Verifica se há usuários vinculados a este perfil
+        # No Beanie, buscamos pelo campo de link (Usuario.perfil.id)
+        usuarios_vinculados = await Usuario.find(Usuario.perfil.id == perfil.id).count()
+        
         if usuarios_vinculados > 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
                 detail=f"Não é possível excluir. Existem {usuarios_vinculados} usuário(s) vinculados a este perfil."
             )
         
-        
-        # ajuste 3. Cria o novo perfil usando o repositório (que encapsula a lógica do DB)
-        return perfil_repository.remove(db, id=perfil_id)
+        await perfil.delete()
+        return True
 
 perfil_service = PerfilService()
