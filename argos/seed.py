@@ -7,7 +7,7 @@ def seed():
     print("🌱 Iniciando população do banco de dados...")
 
     # 1. Criar Empresa
-    empresa_data = {"nome": "TechShield Forense", "cnpj": "99.999.999/0001-99"}
+    empresa_data = {"nome": "TechShielld Forense", "cnpj": "11.111.999/0001-99"}
     print(f"📤 Enviando Empresa: {empresa_data}")
     
     resp = requests.post(f"{API_URL}/auth/cadastrar_empresa", json=empresa_data)
@@ -33,7 +33,7 @@ def seed():
     print(f"🏢 ID da Empresa: {empresa_id}")
 
     # 2. Criar Gestor
-    gestor_email = "gestor@argos.com"
+    gestor_email = "gestorDoGrau@argos.com"
     gestor_pass = "senha123"
     
     gestor_data = {
