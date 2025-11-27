@@ -35,7 +35,7 @@ def gerar_senha_aleatoria(length: int = 10) -> str:
     characters = string.ascii_letters + string.digits
     return "".join(secrets.choice(characters) for _ in range(length))
 
-def gerar_email_institucional(name: str, domain: str = "empresa.com") -> str:
+def gerar_email_institucional(name: str, domain: str = "argos.com") -> str:
     formatted_name = name.lower().replace(" ", ".")
     return f"{formatted_name}@{domain}"
 

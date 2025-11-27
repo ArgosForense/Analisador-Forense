@@ -1,0 +1,11 @@
+[{
+  "_id": {
+    "$oid": "6910b680a0bc8871f0ac29a7"
+  },
+  "timestamp": "2025-11-09T15:00:00Z",
+  "severidade": "CRITICA",
+  "mensagem": "Tentativa de acesso não autorizada a servidor.",
+  "log_id": "cole_aqui_o_id_do_log_que_disparou",
+  "status_alerta": "ABERTO",
+  "analista_responsavel_id": "cole_aqui_o_id_do_analista"
+}]

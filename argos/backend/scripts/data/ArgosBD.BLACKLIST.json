@@ -1,0 +1,9 @@
+[{
+  "_id": {
+    "$oid": "6911f6cb942263c422189f58"
+  },
+  "ip_address": "192.168.1.50",
+  "motivo": "Tentativas repetidas de login em rede",
+  "data_bloqueio": "2025-11-10T14:00:00Z",
+  "gestor_id": "6910b70da0bc8871f0ac29b0"
+}]

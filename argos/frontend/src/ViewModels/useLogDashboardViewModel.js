@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 const API_URL = 'http://localhost:5000';
 const LOG_UPDATE_INTERVAL = 30000;
 
-const getSeverity = (log) => {
+export const getSeverity = (log) => {
   if (log.categoria === 'suspeito' || log.evento === 'entrada_falhou' || log.mensagem?.toUpperCase().includes('SUSPEITO')) {
       return 'WARNING';
   }
